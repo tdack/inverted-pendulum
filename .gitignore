@@ -3,6 +3,7 @@
 *.lo
 *.o
 *.obj
+*.dtbo
 
 # Precompiled Headers
 *.gch
@@ -27,15 +28,23 @@
 *.out
 *.app
 
+# Eclipse settings
 .settings/
-Doc/
-src/doxygen_sqlite3.db
 /.pydevproject
-*.dtbo
+
+# Compiled documentation
+Doc/
+doc/html/
+doc/doxygen_sqlite3.db
+src/doxygen_sqlite3.db
+
+
+# Build directories
 /Debug/
 /Debug (Local)/
 /Pendulum/
 /Release/
 /Websocket/
-doc/html/
-doc/doxygen_sqlite3.db
+
+# Project binary
+pendulum
