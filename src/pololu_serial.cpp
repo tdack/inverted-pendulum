@@ -4,7 +4,7 @@
  *  Created on: 21 May 2015
  *      Author: troy
  */
-// Uses POSIX functions to send and receive data from the virtual serial
+// Uses POSIX functions to send and receive data to the serial
 // port of a Pololu Simple Motor Controller.
 
 #include <fcntl.h>
@@ -12,25 +12,27 @@
 #include <unistd.h>
 #include "../include/pololu_serial.h"
 
-// Reads a variable from the SMC and returns it as number between 0 and 65535.
-// Returns SERIAL_ERROR if there was an error.
-// The 'variableId' argument must be one of IDs listed in the
-// "Controller Variables" section of the user's guide.
-// For variables that are actually signed, additional processing is required
-// (see smcGetTargetSpeed for an example).
+/**
+ * Reads a variable from the SMC and returns it as number between 0 and 65535.
+ * Returns SERIAL_ERROR if there was an error.
+ * The 'variableId' argument must be one of IDs listed in the
+ * "Controller Variables" section of the user's guide.
+ * For variables that are actually signed, additional processing is required
+ * (@see smcGetTargetSpeed() for an example).
+*/
 int smcGetVariable(int fd, unsigned char variableId)
 {
   unsigned char command[] = {0xA1, variableId};
   if(write(fd, &command, sizeof(command)) == -1)
   {
-    perror("smcGetVariable: error writing");
+//    perror("smcGetVariable: error writing");
     return SERIAL_ERROR;
   }
 
   unsigned char response[2];
   if(read(fd,response,2) != 2)
   {
-    perror("smcGetVariable: error reading");
+//    perror("smcGetVariable: error reading");
     return SERIAL_ERROR;
   }
 
