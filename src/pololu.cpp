@@ -34,9 +34,9 @@ int open_port(void){
     int fd;
     struct termios options;
 
-    fd = open(pololu_tty, O_RDWR | O_NOCTTY | O_NDELAY);
+    fd = open(POLOLU_TTY, O_RDWR | O_NOCTTY | O_NDELAY);
     if (fd == -1) {
-        std::cerr << "Unable to open /dev/ttyO1" << std::endl;
+        std::cerr << "Unable to open " << POLOLU_TTY << std::endl;
     } else {
         fcntl(fd, F_SETFL, FNDELAY);
         tcgetattr(fd, &options);
@@ -102,9 +102,8 @@ int read_eQEP ()
 
 int main(int argc, char const *argv[]) {
 
-	int eqep_num = 0;
-	uint32_t eqep_pos;
-	int motor_speed = 0;
+	int motor_speed = 256;
+	int target = 400;
 
 	// Open serial port
 	int fd = open_port();
@@ -115,27 +114,27 @@ int main(int argc, char const *argv[]) {
 
 	if (argc > 1) {
 		motor_speed = strtol(argv[1],NULL,0);
-	} else {
-		motor_speed = 256;
+		target = strtol(argv[2],NULL,0);
 	}
-	cout << argv[1] << endl;
 
 	// Initialise eQEP
-	BBB::eQEP eqep(eqep_num);
+	BBB::eQEP eqep(MOTOR_EQEP);
 	eqep.resetPositionCounter();			// reset eQEP
 	eqep.positionCounterSourceSelection(0); // set Quadrature mode
 	eqep.enablePositionCompareShadow();		// enable Shadow
-	eqep.setPosition(0);
 	eqep.setCaptureLatchMode(BBB::eQEP::CLMCPU);
 	eqep.enableCaptureUnit();
-	eqep.setUnitPeriod(1000);
-	cout << "Unit Timer Value : " << eqep.getUnitTimer() << endl;
-	cout << "Unit Timer Period: " << eqep.getUnitPeriod() << endl;
+	eqep.setUnitPeriod(10000);
 
+	// Initialise comms with motor controller
 	smcAutoDetectBaudRate(fd);
+	// Exit USB safe start
 	smcExitSafeStart(fd);
+	usleep(500);
 
+	// Get voltage
 	int vin = smcGetVariable(fd, 23);
+	vin = smcGetVariable(fd, 23); // Read it twice just in case
 	printf("Vin: %0.2f\n\n", vin/1000.0);
 
 
@@ -143,24 +142,42 @@ int main(int argc, char const *argv[]) {
 
 	int pos = eqep.getPosition();
 	int old_pos = 0;
+	float angle = 0;
 	int delta_pos = 0;
-	int target = 400;
-	std::cout << "Position:" << pos << std::endl;
+	int dir = 1;
+	cout << "Position:" << pos << std::endl;
 //	for (int i=0; i < 10; i++) {
-		while (abs(pos) < target) {
+		while (abs(pos) < abs(target)) {
 			old_pos = pos;
 			pos = eqep.getPosition();
+			angle = pos/ENCODER_RATIO * 360;
 			delta_pos = pos - old_pos;
-			std::cout << "\r -- Position:" << pos << \
+			cout << "\r -- Position:" << pos << \
+					"  Angle: " << angle << "deg " << \
 					"  Capture Time: " << eqep.getCaptureTimerLatch() << \
-					"  Capture Period:   " << eqep.getCapturePeriodLatch() << \
-					"  Delta  : " << delta_pos << "      ";
+					"  Capture Period: " << eqep.getCapturePeriodLatch() << \
+					"  Delta  : " << delta_pos << "  ";
 		}
+//		target = -target;
+//		motor_speed = -motor_speed;
+//		smcSetTargetSpeed(fd, motor_speed);
+//		while (pos > target) {
+//			old_pos = pos;
+//			pos = eqep.getPosition();
+//			angle = pos/ENCODER_RATIO * 360;
+//			delta_pos = pos - old_pos;
+//			cout << "\r -- Position:" << pos << \
+//					"  Angle: " << angle << "deg " << \
+//					"  Capture Time: " << eqep.getCaptureTimerLatch() << \
+//					"  Capture Period: " << eqep.getCapturePeriodLatch() << \
+//					"  Delta  : " << delta_pos << "  ";
+//		}
+//		target = -target;
 //		motor_speed = -motor_speed;
 //		smcSetTargetSpeed(fd, motor_speed);
 //	}
 	smcSetTargetSpeed(fd, 0);
-	std::cout << std::endl << "Position:" << pos << std::endl;
+	cout << std::endl << "Position:" << eqep.getPosition() << endl;
 
 	close(fd);
 	return 0;
