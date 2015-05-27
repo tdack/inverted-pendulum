@@ -16,6 +16,4 @@ const double ENCODER_PPR = 1600.0;
 const double ENCODER_RATIO = ENCODER_PPR * MOTOR_TEETH / ENCODER_TEETH;
 const char* POLOLU_TTY = "/dev/ttyO1";
 
-
-
 #endif /* INCLUDE_POLOLU_H_ */
