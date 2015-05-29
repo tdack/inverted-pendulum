@@ -23,8 +23,8 @@
 #include <sys/mman.h>
 #include <errno.h>
 
-#include "../include/bbb-eqep.h"
-#include "../include/debug.h"
+#include "bbb-eqep.h"
+#include "debug.h"
 
 namespace BBB
 {
