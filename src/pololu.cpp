@@ -37,6 +37,9 @@ template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
 
+// Need global variable so PWM overlay doesn't keep being loaded and unloaded
+BlackLib::BlackPWM pwm(BlackLib::EHRPWM2A); // P8_19
+
 int open_port(){
     int fd;
     struct termios options;
@@ -109,8 +112,6 @@ int read_eQEP ()
 
 void beep(int count=1){
 
-	BlackLib::BlackPWM pwm(BlackLib::EHRPWM2A); // P8_19
-
 	pwm.setDutyPercent(15.0);
 	pwm.setPeriodTime(10000);
 	for (int i=0; i < count; i++) {
@@ -125,7 +126,8 @@ void beep(int count=1){
 
 int main(int argc, char const *argv[]) {
 
-	beep(3);
+//	beep(3);
+
 	int motor_speed = 256;
 	int target = -90; // target position in deg
 
@@ -169,23 +171,30 @@ int main(int argc, char const *argv[]) {
 	smcSetTargetSpeed(fd, motor_speed);
 	int pos = eqep.getPosition();
 	int old_pos = 0;
-	float angle = 0;
 	int delta_pos = 0;
+	float angle = 0.0;
+	float old_angle = 0.0;
+	float delta_angle = 0.0;
 
-	while (abs(angle) < abs(target)) {
-		old_pos = pos;
-		pos = eqep.getPosition();
-		angle = pos/ENCODER_RATIO * 360;
-		delta_pos = pos - old_pos;
-		cout << "\r -- Position: " << std::setw(5) << std::setfill(' ') << pos << \
-				"  Angle: " << std::fixed << std::setw(8) << std::setprecision(2) << std::setfill(' ') << angle << " deg " << \
-				"  Delta  : " << delta_pos;
-		if ((abs(target)-abs(angle)) < (abs(target)*0.1)) {
-			smcSetTargetSpeed(fd, motor_speed < 512 ? sgn(motor_speed) * 128 : motor_speed/4);
+	for (int i=0; i<4; i++) {
+		while (abs(angle) < abs(target)) {
+			old_pos = pos;
+			old_angle = angle;
+			pos = eqep.getPosition();
+			angle = pos/ENCODER_RATIO * 360;
+			delta_pos = pos - old_pos;
+			delta_angle = angle - old_angle;
+			cout << "\r -- Position: " << std::setw(5) << std::setfill(' ') << pos << \
+					"  Angle: " << std::fixed << std::setw(8) << std::setprecision(2) << std::setfill(' ') << angle << " deg " << \
+					"  Delta  : " << std::fixed << std::setw(8) << std::setprecision(2) << std::setfill(' ') << delta_angle << " deg";
+			if ((abs(target)-abs(angle)) < (abs(target)*0.1)) {
+				smcSetTargetSpeed(fd, motor_speed < 512 ? sgn(motor_speed) * 128 : motor_speed/4);
+			}
 		}
+		motor_speed = -motor_speed;
+		target = -target;
 	}
 	smcSetTargetSpeed(fd, 0);
-	beep();
 	cout << endl;
 
 	close(fd);
