@@ -18,6 +18,7 @@
 #include <cstdio>
 #include <cstring>
 #include <sstream>
+#include <iomanip>
 
 #include "pololu.h"
 #include "bbb-eqep/bbb-eqep.h"
@@ -32,7 +33,11 @@ using std::cout;
 using std::endl;
 using std::cerr;
 
-int open_port(void){
+template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
+
+int open_port(){
     int fd;
     struct termios options;
 
@@ -102,8 +107,25 @@ int read_eQEP ()
   return 0;
 }
 
+void beep(int count=1){
+
+	BlackLib::BlackPWM pwm(BlackLib::EHRPWM2A); // P8_19
+
+	pwm.setDutyPercent(15.0);
+	pwm.setPeriodTime(10000);
+	for (int i=0; i < count; i++) {
+		pwm.setRunState(BlackLib::run);
+		usleep(75000);
+		pwm.setRunState(BlackLib::stop);
+		usleep(75000);
+	}
+	pwm.setDutyPercent(0.0);
+
+}
+
 int main(int argc, char const *argv[]) {
 
+	beep(3);
 	int motor_speed = 256;
 	int target = -90; // target position in deg
 
@@ -114,6 +136,7 @@ int main(int argc, char const *argv[]) {
 		return 1;
 	}
 
+	//
 	if (argc == 3) {
 		motor_speed = strtol(argv[1],NULL,0);
 		target = strtol(argv[2],NULL,0);
@@ -123,9 +146,9 @@ int main(int argc, char const *argv[]) {
 	} else if (argc == 2) {
 		motor_speed = strtol(argv[1],NULL,0);
 	}
-	if (abs(motor_speed) > 3200) {
-		motor_speed = 256;
-	}
+
+	motor_speed = abs(motor_speed) > 3200 ? sgn(motor_speed) * 256 : motor_speed;
+	motor_speed = abs(motor_speed) < 128 ? sgn(motor_speed) * 128 : motor_speed;
 
 	// Initialise eQEP
 	BBB::eQEP eqep(MOTOR_EQEP);
@@ -143,49 +166,27 @@ int main(int argc, char const *argv[]) {
 	// Wait for a bit before starting
 	usleep(500);
 
-
 	smcSetTargetSpeed(fd, motor_speed);
 	int pos = eqep.getPosition();
 	int old_pos = 0;
 	float angle = 0;
 	int delta_pos = 0;
-//	for (int i=0; i < 100000; i++) {
-		while (abs(angle) < abs(target)) {
-			old_pos = pos;
-			pos = eqep.getPosition();
-			angle = pos/ENCODER_RATIO * 360;
-			delta_pos = pos - old_pos;
-			cout << "\r -- Position:" << pos << \
-					"  Angle: " << angle << "deg " << \
-					"  Capture Time: " << eqep.getCaptureTimerLatch() << \
-					"  Capture Period: " << eqep.getCapturePeriodLatch() << \
-					"  Delta  : " << delta_pos << "  ";
-			if ((abs(target)-abs(angle)) < (abs(target)*0.1)) {
-				smcSetTargetSpeed(fd, motor_speed < 512 ? motor_speed/1.5 : motor_speed/4);
-			}
+
+	while (abs(angle) < abs(target)) {
+		old_pos = pos;
+		pos = eqep.getPosition();
+		angle = pos/ENCODER_RATIO * 360;
+		delta_pos = pos - old_pos;
+		cout << "\r -- Position: " << std::setw(5) << std::setfill(' ') << pos << \
+				"  Angle: " << std::fixed << std::setw(8) << std::setprecision(2) << std::setfill(' ') << angle << " deg " << \
+				"  Delta  : " << delta_pos;
+		if ((abs(target)-abs(angle)) < (abs(target)*0.1)) {
+			smcSetTargetSpeed(fd, motor_speed < 512 ? sgn(motor_speed) * 128 : motor_speed/4);
 		}
-/*
-		target = -target;
-		motor_speed = -motor_speed;
-		smcSetTargetSpeed(fd, motor_speed);
-		while (pos > target) {
-			old_pos = pos;
-			pos = eqep.getPosition();
-			angle = pos/ENCODER_RATIO * 360;
-			delta_pos = pos - old_pos;
-			cout << "\r -- Position:" << pos << \
-					"  Angle: " << angle << "deg " << \
-					"  Capture Time: " << eqep.getCaptureTimerLatch() << \
-					"  Capture Period: " << eqep.getCapturePeriodLatch() << \
-					"  Delta  : " << delta_pos << "  ";
-		}
-		target = -target;
-		motor_speed = -motor_speed;
-		smcSetTargetSpeed(fd, motor_speed);
 	}
-*/
 	smcSetTargetSpeed(fd, 0);
-	cout << std::endl << "Position:" << eqep.getPosition() << endl;
+	beep();
+	cout << endl;
 
 	close(fd);
 	return 0;
