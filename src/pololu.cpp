@@ -23,9 +23,9 @@
 #include "pololu.h"
 #include "bbb-eqep/bbb-eqep.h"
 #include "bbb-eqep/debug.h"
-#include "BlackLib/BlackCore.h"
-#include "BlackLib/BlackPWM.h"
-#include "BlackLib/BlackGPIO.h"
+//#include "BlackLib/BlackCore.h"
+//#include "BlackLib/BlackPWM.h"
+//#include "BlackLib/BlackGPIO.h"
 
 #include "pololu_serial.h"
 
@@ -38,7 +38,7 @@ template <typename T> int sgn(T val) {
 }
 
 // Need global variable so PWM overlay doesn't keep being loaded and unloaded
-BlackLib::BlackPWM pwm(BlackLib::EHRPWM2A); // P8_19
+//BlackLib::BlackPWM pwm(BlackLib::EHRPWM2A); // P8_19
 
 int open_port(){
     int fd;
@@ -110,26 +110,26 @@ int read_eQEP ()
   return 0;
 }
 
-void beep(int count=1){
-
-	pwm.setDutyPercent(15.0);
-	pwm.setPeriodTime(10000);
-	for (int i=0; i < count; i++) {
-		pwm.setRunState(BlackLib::run);
-		usleep(75000);
-		pwm.setRunState(BlackLib::stop);
-		usleep(75000);
-	}
-	pwm.setDutyPercent(0.0);
-
-}
+//void beep(int count=1){
+//
+//	pwm.setDutyPercent(15.0);
+//	pwm.setPeriodTime(10000);
+//	for (int i=0; i < count; i++) {
+//		pwm.setRunState(BlackLib::run);
+//		usleep(75000);
+//		pwm.setRunState(BlackLib::stop);
+//		usleep(75000);
+//	}
+//	pwm.setDutyPercent(0.0);
+//
+//}
 
 int main(int argc, char const *argv[]) {
 
 //	beep(3);
 
 	int motor_speed = 256;
-	int target = -90; // target position in deg
+	int target = 90; // target position in deg
 
 	// Open serial port
 	int fd = open_port();
@@ -147,6 +147,7 @@ int main(int argc, char const *argv[]) {
 		}
 	} else if (argc == 2) {
 		motor_speed = strtol(argv[1],NULL,0);
+		target = 90;
 	}
 
 	motor_speed = abs(motor_speed) > 3200 ? sgn(motor_speed) * 256 : motor_speed;
@@ -168,7 +169,6 @@ int main(int argc, char const *argv[]) {
 	// Wait for a bit before starting
 	usleep(500);
 
-	smcSetTargetSpeed(fd, motor_speed);
 	int pos = eqep.getPosition();
 	int old_pos = 0;
 	int delta_pos = 0;
@@ -176,8 +176,9 @@ int main(int argc, char const *argv[]) {
 	float old_angle = 0.0;
 	float delta_angle = 0.0;
 
-	for (int i=0; i<4; i++) {
-		while (abs(angle) < abs(target)) {
+	for (int i=0; i<10; i++) {
+		smcSetTargetSpeed(fd, motor_speed);
+		while (angle < target) {
 			old_pos = pos;
 			old_angle = angle;
 			pos = eqep.getPosition();
@@ -187,7 +188,24 @@ int main(int argc, char const *argv[]) {
 			cout << "\r -- Position: " << std::setw(5) << std::setfill(' ') << pos << \
 					"  Angle: " << std::fixed << std::setw(8) << std::setprecision(2) << std::setfill(' ') << angle << " deg " << \
 					"  Delta  : " << std::fixed << std::setw(8) << std::setprecision(2) << std::setfill(' ') << delta_angle << " deg";
-			if ((abs(target)-abs(angle)) < (abs(target)*0.1)) {
+			if ((target - angle) < (target*0.1)) {
+				smcSetTargetSpeed(fd, motor_speed < 512 ? sgn(motor_speed) * 128 : motor_speed/4);
+			}
+		}
+		motor_speed = -motor_speed;
+		target = -target;
+		smcSetTargetSpeed(fd, motor_speed);
+		while (angle > target) {
+			old_pos = pos;
+			old_angle = angle;
+			pos = eqep.getPosition();
+			angle = pos/ENCODER_RATIO * 360;
+			delta_pos = pos - old_pos;
+			delta_angle = angle - old_angle;
+			cout << "\r -- Position: " << std::setw(5) << std::setfill(' ') << pos << \
+					"  Angle: " << std::fixed << std::setw(8) << std::setprecision(2) << std::setfill(' ') << angle << " deg " << \
+					"  Delta  : " << std::fixed << std::setw(8) << std::setprecision(2) << std::setfill(' ') << delta_angle << " deg";
+			if ((target - angle) > (target*0.1)) {
 				smcSetTargetSpeed(fd, motor_speed < 512 ? sgn(motor_speed) * 128 : motor_speed/4);
 			}
 		}
@@ -195,7 +213,7 @@ int main(int argc, char const *argv[]) {
 		target = -target;
 	}
 	smcSetTargetSpeed(fd, 0);
-	cout << endl;
+	cout << "\n" << eqep.getPosition() << endl;
 
 	close(fd);
 	return 0;
