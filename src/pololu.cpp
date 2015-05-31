@@ -124,10 +124,7 @@ int read_eQEP ()
 //
 //}
 
-int main(int argc, char const *argv[]) {
-
-//	beep(3);
-
+int oscillate_motor(int argc, char const *argv[]) {
 	int motor_speed = 256;
 	int target = 90; // target position in deg
 
@@ -138,15 +135,9 @@ int main(int argc, char const *argv[]) {
 		return 1;
 	}
 
-	//
-	if (argc == 3) {
-		motor_speed = strtol(argv[1],NULL,0);
-		target = strtol(argv[2],NULL,0);
-		if (target < 0 || target > 360) {
-			target = 90;
-		}
-	} else if (argc == 2) {
-		motor_speed = strtol(argv[1],NULL,0);
+	motor_speed = strtol(argv[1],NULL,0);
+	target = strtol(argv[2],NULL,0);
+	if (target < 0 || target > 360) {
 		target = 90;
 	}
 
@@ -167,17 +158,21 @@ int main(int argc, char const *argv[]) {
 	// Exit USB safe start
 	smcExitSafeStart(fd);
 	// Wait for a bit before starting
+	cout << "Current errors " << smcGetVariable(fd, 1) << endl;
 	usleep(500);
 
 	int pos = eqep.getPosition();
 	int old_pos = 0;
 	int delta_pos = 0;
+	int error_status = 0;
 	float angle = 0.0;
 	float old_angle = 0.0;
 	float delta_angle = 0.0;
 
 	for (int i=0; i<10; i++) {
 		smcSetTargetSpeed(fd, motor_speed);
+		error_status = smcGetErrorStatus(fd);
+		cout << "\nError status " << std::cout.write(reinterpret_cast<const char*>(&error_status), sizeof error_status) << endl;
 		while (angle < target) {
 			old_pos = pos;
 			old_angle = angle;
@@ -195,6 +190,8 @@ int main(int argc, char const *argv[]) {
 		motor_speed = -motor_speed;
 		target = -target;
 		smcSetTargetSpeed(fd, motor_speed);
+		error_status = smcGetErrorStatus(fd);
+		cout << "\nError status " << std::cout.write(reinterpret_cast<const char*>(&error_status), sizeof error_status) << endl;
 		while (angle > target) {
 			old_pos = pos;
 			old_angle = angle;
@@ -216,5 +213,95 @@ int main(int argc, char const *argv[]) {
 	cout << "\n" << eqep.getPosition() << endl;
 
 	close(fd);
+	return 0;
+}
+
+int step_motor(int argc, char const *argv[]) {
+	int motor_speed = 256;
+	int duration = 5; // Duration of step
+	struct timeval tv1, tv2;
+
+	// Open serial port
+	int fd = open_port();
+	if (fd == -1) {
+		perror("Couldn't open UART");
+		return 1;
+	}
+
+	//
+	if (argc == 3) {
+		motor_speed = strtol(argv[1],NULL,0);
+		duration = strtol(argv[2],NULL,0);
+		if (duration < 0 || duration > 60) {
+			duration = 2;
+		}
+	} else if (argc == 2) {
+		motor_speed = strtol(argv[1],NULL,0);
+		duration = 2;
+	}
+
+	motor_speed = abs(motor_speed) > 3200 ? 3200 : motor_speed;
+	motor_speed = abs(motor_speed) < 128 ? 128 : motor_speed;
+
+	// Initialise eQEP
+	BBB::eQEP eqep(MOTOR_EQEP);
+	eqep.resetPositionCounter();			// reset eQEP
+	eqep.positionCounterSourceSelection(0); // set Quadrature mode
+	eqep.enablePositionCompareShadow();		// enable Shadow
+	eqep.setCaptureLatchMode(BBB::eQEP::CLMCPU);
+	eqep.enableCaptureUnit();
+	eqep.setUnitPeriod(1000);
+
+	// Initialise comms with motor controller
+	smcAutoDetectBaudRate(fd);
+	// Exit USB safe start
+	smcExitSafeStart(fd);
+	// Wait for a bit before starting
+	usleep(500);
+
+	int pos = eqep.getPosition();
+	int old_pos = 0;
+	int delta_pos = 0;
+	int error_status = 0;
+	float angle = 0.0;
+	float old_angle = 0.0;
+	float delta_angle = 0.0;
+
+	smcSetTargetSpeed(fd, motor_speed);
+	gettimeofday(&tv1,NULL);
+	unsigned long dt_micros=0;
+	cout << "Position,Angle,Microseconds" << endl;
+	while ( dt_micros < (duration*1000000)) {
+		old_pos = pos;
+		old_angle = angle;
+		pos = eqep.getPosition();
+		gettimeofday(&tv2,NULL);
+		dt_micros = (1000000 * tv2.tv_sec + tv2.tv_usec)-(1000000 * tv1.tv_sec + tv1.tv_usec);
+		angle = pos/ENCODER_RATIO * 360;
+		delta_pos = pos - old_pos;
+		delta_angle = angle - old_angle;
+		cout << pos << "," << \
+			angle << "," << \
+			dt_micros << endl;
+	}
+	smcSetTargetSpeed(fd, 0);
+
+	close(fd);
+	return 0;
+}
+
+int main(int argc, char const *argv[]) {
+
+	if (argc == 4) {
+		if (strtol(argv[3],NULL,0) == 1) {
+			return step_motor(argc, argv);
+		} else if (strtol(argv[3],NULL,0) == 2) {
+			return oscillate_motor(argc, argv);
+		}
+	} else {
+		cout << "Usage" << endl;
+		cout << "      Step motor     : " << argv[0] << " [speed] [duration] 1" << endl;
+		cout << "      Osscilate motor: " << argv[0] << " [speed] [angle] 2" << endl;
+	}
 	return 0;
 }
