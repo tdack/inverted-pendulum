@@ -228,16 +228,10 @@ int step_motor(int argc, char const *argv[]) {
 		return 1;
 	}
 
-	//
-	if (argc == 3) {
-		motor_speed = strtol(argv[1],NULL,0);
-		duration = strtol(argv[2],NULL,0);
-		if (duration < 0 || duration > 60) {
-			duration = 2;
-		}
-	} else if (argc == 2) {
-		motor_speed = strtol(argv[1],NULL,0);
-		duration = 2;
+	motor_speed = strtol(argv[1],NULL,0);
+	duration = strtol(argv[2],NULL,0);
+	if (duration < 0 || duration > 60) {
+		duration = 5;
 	}
 
 	motor_speed = abs(motor_speed) > 3200 ? 3200 : motor_speed;
@@ -270,6 +264,8 @@ int step_motor(int argc, char const *argv[]) {
 	smcSetTargetSpeed(fd, motor_speed);
 	gettimeofday(&tv1,NULL);
 	unsigned long dt_micros=0;
+	// Turn off output buffering (hopefully)
+	std::cout.setf(std::ios::unitbuf);
 	cout << "Position,Angle,Microseconds" << endl;
 	while ( dt_micros < (duration*1000000)) {
 		old_pos = pos;
@@ -283,6 +279,8 @@ int step_motor(int argc, char const *argv[]) {
 		cout << pos << "," << \
 			angle << "," << \
 			dt_micros << endl;
+		// sleep for 1ms to allow for a reasonable position change between each read
+		usleep(1000);
 	}
 	smcSetTargetSpeed(fd, 0);
 
