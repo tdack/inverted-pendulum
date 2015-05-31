@@ -19,6 +19,9 @@
  * "Controller Variables" section of the user's guide.
  * For variables that are actually signed, additional processing is required
  * (@see smcGetTargetSpeed() for an example).
+ * @param fd
+ * @param variableId
+ * @return
 */
 int smcGetVariable(int fd, unsigned char variableId)
 {
@@ -39,18 +42,25 @@ int smcGetVariable(int fd, unsigned char variableId)
   return response[0] + 256*response[1];
 }
 
-// Returns the target speed (-3200 to 3200).
-// Returns SERIAL_ERROR if there is an error.
+//
+//
+/**
+ * Returns the target speed (-3200 to 3200).
+ * Returns SERIAL_ERROR if there is an error.
+ * @param fd the file descriptor for the open serial port
+ * @return
+ */
 int smcGetTargetSpeed(int fd)
 {
   int val = smcGetVariable(fd, 20);
   return val == SERIAL_ERROR ? SERIAL_ERROR : (signed short)val;
 }
 
-// Returns a number where each bit represents a different error, and the
-// bit is 1 if the error is currently active.
-// See the user's guide for definitions of the different error bits.
-// Returns SERIAL_ERROR if there is an error.
+/**
+ * Get the current Simple Motor Controller error status
+ * @param fd file descriptor for serial port
+ * @return error bit field if successful, SERIAL_ERROR if there was an error sending
+ */
 int smcGetErrorStatus(int fd)
 {
   return smcGetVariable(fd,0);
@@ -59,6 +69,11 @@ int smcGetErrorStatus(int fd)
 // Sends the Baud Rate auto detect command, which is required to initiate serial
 // communication.
 // Returns 0 if successful, SERIAL_ERROR if there was an error sending.
+/**
+ *
+ * @param fd file descriptor for serial port
+ * @return 0 if successful, SERIAL_ERROR if there was an error sending
+ */
 int smcAutoDetectBaudRate(int fd)
 {
   const unsigned char command = 0xAA;
@@ -70,8 +85,12 @@ int smcAutoDetectBaudRate(int fd)
   return 0;
 }
 
-// Sends the Exit Safe Start command, which is required to drive the motor.
-// Returns 0 if successful, SERIAL_ERROR if there was an error sending.
+/**
+ * Exit USB Safe Start mode.
+ * Required to enable motor driving
+ * @param fd file descriptor for serial port
+ * @return 0 if successful, SERIAL_ERROR if there was an error sending
+ */
 int smcExitSafeStart(int fd)
 {
   const unsigned char command = 0x83;
@@ -83,9 +102,12 @@ int smcExitSafeStart(int fd)
   return 0;
 }
 
-// Sets the SMC's target speed (-3200 to 3200).
-// Returns 0 if successful, SERIAL_ERROR if there was an error sending.
-int smcSetTargetSpeed(int fd, int speed)
+/**
+ * Set the Simple Motor Controller target speed
+ * @param fd file descriptor for serial port
+ * @param speed target speed (-3200 to 3200)
+ * @return 0 if successful, SERIAL_ERROR if there was an error sending
+ */int smcSetTargetSpeed(int fd, int speed)
 {
   unsigned char command[3];
 
