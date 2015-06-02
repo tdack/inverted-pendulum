@@ -18,7 +18,9 @@
 #include <cstdio>
 #include <cstring>
 #include <sstream>
+#include <fstream>
 #include <iomanip>
+#include <math.h>
 
 #include "pololu.h"
 #include "bbb-eqep/bbb-eqep.h"
@@ -125,8 +127,8 @@ int read_eQEP ()
 //}
 
 int oscillate_motor(int argc, char const *argv[]) {
-	int motor_speed = 256;
-	int target = 90; // target position in deg
+	int motor_speed;
+	int target; // target position in deg
 
 	// Open serial port
 	int fd = open_port();
@@ -135,9 +137,9 @@ int oscillate_motor(int argc, char const *argv[]) {
 		return 1;
 	}
 
-	motor_speed = strtol(argv[1],NULL,0);
-	target = strtol(argv[2],NULL,0);
-	if (target < 0 || target > 360) {
+	motor_speed = strtol(argv[2],NULL,0);
+	target = strtol(argv[3],NULL,0);
+	if (target < -360 || target > 360) {
 		target = 90;
 	}
 
@@ -217,8 +219,8 @@ int oscillate_motor(int argc, char const *argv[]) {
 }
 
 int step_motor(int argc, char const *argv[]) {
-	int motor_speed = 256;
-	int duration = 5; // Duration of step
+	int motor_speed;
+	int duration; // Duration of step
 	struct timeval tv1, tv2;
 
 	// Open serial port
@@ -228,12 +230,20 @@ int step_motor(int argc, char const *argv[]) {
 		return 1;
 	}
 
-	motor_speed = strtol(argv[1],NULL,0);
-	duration = strtol(argv[2],NULL,0);
-	if (duration < 0 || duration > 60) {
+	motor_speed = strtol(argv[2],NULL,0);
+	duration = strtol(argv[3],NULL,0);
+	if (duration < 0 || duration > 30) {
 		duration = 5;
 	}
 
+	std::ofstream results;
+	if (strlen(argv[4]) != 0) {
+		results.open(argv[4], std::ios::out | std::ios::trunc);
+	} else {
+		std::cerr << "No filename given for results" << endl;
+		return -1;
+	}
+	// Make sure motor speed is in valid range, otherwise coerce it.
 	motor_speed = abs(motor_speed) > 3200 ? 3200 : motor_speed;
 	motor_speed = abs(motor_speed) < 128 ? 128 : motor_speed;
 
@@ -255,34 +265,38 @@ int step_motor(int argc, char const *argv[]) {
 
 	int pos = eqep.getPosition();
 	int old_pos = 0;
-	int delta_pos = 0;
+	int dt_pos = 0;
 	int error_status = 0;
 	float angle = 0.0;
 	float old_angle = 0.0;
-	float delta_angle = 0.0;
+	float dt_angle = 0.0;
+	float velocity = 0;
 
 	smcSetTargetSpeed(fd, motor_speed);
 	gettimeofday(&tv1,NULL);
-	unsigned long dt_micros=0;
-	// Turn off output buffering (hopefully)
-	std::cout.setf(std::ios::unitbuf);
-	cout << "Position,Angle,Microseconds" << endl;
+	unsigned long dt_micros = 0;
+	unsigned long old_dt_micros = 0;
+	float dt = 0.0;
+	results << "dt_pos,dt_angle (rad),dt (us),t (s),v (rad/s)" << endl;
 	while ( dt_micros < (duration*1000000)) {
 		old_pos = pos;
 		old_angle = angle;
+		old_dt_micros = dt_micros;
 		pos = eqep.getPosition();
 		gettimeofday(&tv2,NULL);
 		dt_micros = (1000000 * tv2.tv_sec + tv2.tv_usec)-(1000000 * tv1.tv_sec + tv1.tv_usec);
-		angle = pos/ENCODER_RATIO * 360;
-		delta_pos = pos - old_pos;
-		delta_angle = angle - old_angle;
-		cout << pos << "," << \
-			angle << "," << \
-			dt_micros << endl;
-		// sleep for 1ms to allow for a reasonable position change between each read
-		usleep(1000);
+		dt = (dt_micros - old_dt_micros)/1e6; // get delta time in seconds
+		angle = pos/ENCODER_RATIO * 2 * M_PI; // angle in radians
+		dt_pos = pos - old_pos;
+		dt_angle = angle - old_angle;
+		velocity = dt_angle/dt; // velocity in radians/second
+		results << dt_pos << ", " << dt_angle << ", " << dt << ", " << dt_micros/1e6 <<", " << velocity << endl;
+		// sleep for ~5ms to allow for a reasonable position change between each read
+		// this ensures that we actually get a velocity
+		usleep(5000);
 	}
 	smcSetTargetSpeed(fd, 0);
+	results.close();
 
 	close(fd);
 	return 0;
@@ -290,16 +304,16 @@ int step_motor(int argc, char const *argv[]) {
 
 int main(int argc, char const *argv[]) {
 
-	if (argc == 4) {
-		if (strtol(argv[3],NULL,0) == 1) {
+	if (argc > 2) {
+		if (strtol(argv[1],NULL,0) == 1) {
 			return step_motor(argc, argv);
-		} else if (strtol(argv[3],NULL,0) == 2) {
+		} else if (strtol(argv[1],NULL,0) == 2) {
 			return oscillate_motor(argc, argv);
 		}
 	} else {
 		cout << "Usage" << endl;
-		cout << "      Step motor     : " << argv[0] << " [speed] [duration] 1" << endl;
-		cout << "      Osscilate motor: " << argv[0] << " [speed] [angle] 2" << endl;
+		cout << "      Step motor     : " << argv[0] << " 1 [speed] [duration] [filename]" << endl;
+		cout << "      Osscilate motor: " << argv[0] << " 2 [speed] [angle]" << endl;
 	}
 	return 0;
 }
