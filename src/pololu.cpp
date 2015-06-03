@@ -31,34 +31,10 @@
 
 #include "pololu_serial.h"
 
-using std::cout;
-using std::endl;
-using std::cerr;
+using namespace std;
 
 template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
-}
-
-// Need global variable so PWM overlay doesn't keep being loaded and unloaded
-//BlackLib::BlackPWM pwm(BlackLib::EHRPWM2A); // P8_19
-
-int open_port(){
-    int fd;
-    struct termios options;
-
-    fd = open(POLOLU_TTY, O_RDWR | O_NOCTTY | O_NDELAY);
-    if (fd == -1) {
-        std::cerr << "Unable to open " << POLOLU_TTY << std::endl;
-    } else {
-        fcntl(fd, F_SETFL, FNDELAY);
-        tcgetattr(fd, &options);
-        cfsetispeed(&options, B115200);
-        cfsetospeed(&options, B115200);
-        options.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
-        options.c_oflag &= ~(ONLCR | OCRNL);
-        tcsetattr(fd, TCSANOW, &options);
-    }
-    return (fd);
 }
 
 int read_eQEP ()
@@ -130,13 +106,6 @@ int oscillate_motor(int argc, char const *argv[]) {
 	int motor_speed;
 	int target; // target position in deg
 
-	// Open serial port
-	int fd = open_port();
-	if (fd == -1) {
-		perror("Couldn't open UART");
-		return 1;
-	}
-
 	motor_speed = strtol(argv[2],NULL,0);
 	target = strtol(argv[3],NULL,0);
 	if (target < -360 || target > 360) {
@@ -155,12 +124,9 @@ int oscillate_motor(int argc, char const *argv[]) {
 	eqep.enableCaptureUnit();
 	eqep.setUnitPeriod(1000);
 
-	// Initialise comms with motor controller
-	smcAutoDetectBaudRate(fd);
-	// Exit USB safe start
-	smcExitSafeStart(fd);
-	// Wait for a bit before starting
-	cout << "Current errors " << smcGetVariable(fd, 1) << endl;
+	// Initialise motor controller
+	Pololu::SMC SMC(POLOLU_TTY);
+	cout << "Current errors " << SMC.GetVariable(1) << endl;
 	usleep(500);
 
 	int pos = eqep.getPosition();
@@ -172,9 +138,9 @@ int oscillate_motor(int argc, char const *argv[]) {
 	float delta_angle = 0.0;
 
 	for (int i=0; i<10; i++) {
-		smcSetTargetSpeed(fd, motor_speed);
-		error_status = smcGetErrorStatus(fd);
-		cout << "\nError status " << std::cout.write(reinterpret_cast<const char*>(&error_status), sizeof error_status) << endl;
+		SMC.SetTargetSpeed(motor_speed);
+		error_status = SMC.GetErrorStatus();
+		cout << "\nError status " << cout.write(reinterpret_cast<const char*>(&error_status), sizeof error_status) << endl;
 		while (angle < target) {
 			old_pos = pos;
 			old_angle = angle;
@@ -182,18 +148,18 @@ int oscillate_motor(int argc, char const *argv[]) {
 			angle = pos/ENCODER_RATIO * 360;
 			delta_pos = pos - old_pos;
 			delta_angle = angle - old_angle;
-			cout << "\r -- Position: " << std::setw(5) << std::setfill(' ') << pos << \
-					"  Angle: " << std::fixed << std::setw(8) << std::setprecision(2) << std::setfill(' ') << angle << " deg " << \
-					"  Delta  : " << std::fixed << std::setw(8) << std::setprecision(2) << std::setfill(' ') << delta_angle << " deg";
+			cout << "\r -- Position: " << setw(5) << setfill(' ') << pos << \
+					"  Angle: " << fixed << setw(8) << setprecision(2) << setfill(' ') << angle << " deg " << \
+					"  Delta  : " << fixed << setw(8) << setprecision(2) << setfill(' ') << delta_angle << " deg";
 			if ((target - angle) < (target*0.1)) {
-				smcSetTargetSpeed(fd, motor_speed < 512 ? sgn(motor_speed) * 128 : motor_speed/4);
+				SMC.SetTargetSpeed(motor_speed < 512 ? sgn(motor_speed) * 128 : motor_speed/4);
 			}
 		}
 		motor_speed = -motor_speed;
 		target = -target;
-		smcSetTargetSpeed(fd, motor_speed);
-		error_status = smcGetErrorStatus(fd);
-		cout << "\nError status " << std::cout.write(reinterpret_cast<const char*>(&error_status), sizeof error_status) << endl;
+		SMC.SetTargetSpeed(motor_speed);
+		error_status = SMC.GetErrorStatus();
+		cout << "\nError status " << cout.write(reinterpret_cast<const char*>(&error_status), sizeof error_status) << endl;
 		while (angle > target) {
 			old_pos = pos;
 			old_angle = angle;
@@ -201,34 +167,35 @@ int oscillate_motor(int argc, char const *argv[]) {
 			angle = pos/ENCODER_RATIO * 360;
 			delta_pos = pos - old_pos;
 			delta_angle = angle - old_angle;
-			cout << "\r -- Position: " << std::setw(5) << std::setfill(' ') << pos << \
-					"  Angle: " << std::fixed << std::setw(8) << std::setprecision(2) << std::setfill(' ') << angle << " deg " << \
-					"  Delta  : " << std::fixed << std::setw(8) << std::setprecision(2) << std::setfill(' ') << delta_angle << " deg";
+			cout << "\r -- Position: " << setw(5) << setfill(' ') << pos << \
+					"  Angle: " << fixed << setw(8) << setprecision(2) << setfill(' ') << angle << " deg " << \
+					"  Delta  : " << fixed << setw(8) << setprecision(2) << setfill(' ') << delta_angle << " deg";
 			if ((target - angle) > (target*0.1)) {
-				smcSetTargetSpeed(fd, motor_speed < 512 ? sgn(motor_speed) * 128 : motor_speed/4);
+				SMC.SetTargetSpeed(motor_speed < 512 ? sgn(motor_speed) * 128 : motor_speed/4);
 			}
 		}
 		motor_speed = -motor_speed;
 		target = -target;
 	}
-	smcSetTargetSpeed(fd, 0);
+	SMC.SetTargetSpeed(0);
 	cout << "\n" << eqep.getPosition() << endl;
 
-	close(fd);
 	return 0;
 }
-
+/**
+ * Apply a step voltage to the motor for a period of time.
+ *
+ * Essentially motor is energised at maximum by motor controller.
+ *
+ * Output data is stored in CSV format for analysis using MATLAB or Excel
+ * @param argc
+ * @param argv
+ * @return
+ */
 int step_motor(int argc, char const *argv[]) {
 	int motor_speed;
 	int duration; // Duration of step
 	struct timeval tv1, tv2;
-
-	// Open serial port
-	int fd = open_port();
-	if (fd == -1) {
-		perror("Couldn't open UART");
-		return 1;
-	}
 
 	motor_speed = strtol(argv[2],NULL,0);
 	duration = strtol(argv[3],NULL,0);
@@ -236,11 +203,12 @@ int step_motor(int argc, char const *argv[]) {
 		duration = 5;
 	}
 
-	std::ofstream results;
+	// Create output file
+	ofstream results;
 	if (strlen(argv[4]) != 0) {
-		results.open(argv[4], std::ios::out | std::ios::trunc);
+		results.open(argv[4], ios::out | ios::trunc);
 	} else {
-		std::cerr << "No filename given for results" << endl;
+		cerr << "No filename given for results" << endl;
 		return -1;
 	}
 	// Make sure motor speed is in valid range, otherwise coerce it.
@@ -256,23 +224,20 @@ int step_motor(int argc, char const *argv[]) {
 	eqep.enableCaptureUnit();
 	eqep.setUnitPeriod(1000);
 
-	// Initialise comms with motor controller
-	smcAutoDetectBaudRate(fd);
-	// Exit USB safe start
-	smcExitSafeStart(fd);
+	// Initialise motor controller
+	Pololu::SMC SMC(POLOLU_TTY);
 	// Wait for a bit before starting
 	usleep(500);
 
 	int pos = eqep.getPosition();
 	int old_pos = 0;
 	int dt_pos = 0;
-	int error_status = 0;
 	float angle = 0.0;
 	float old_angle = 0.0;
 	float dt_angle = 0.0;
 	float velocity = 0;
 
-	smcSetTargetSpeed(fd, motor_speed);
+	SMC.SetTargetSpeed(motor_speed);
 	gettimeofday(&tv1,NULL);
 	unsigned long dt_micros = 0;
 	unsigned long old_dt_micros = 0;
@@ -295,10 +260,9 @@ int step_motor(int argc, char const *argv[]) {
 		// this ensures that we actually get a velocity
 		usleep(5000);
 	}
-	smcSetTargetSpeed(fd, 0);
+	SMC.SetTargetSpeed(0);
 	results.close();
 
-	close(fd);
 	return 0;
 }
 
