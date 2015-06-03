@@ -19,6 +19,17 @@
 
 namespace Pololu {
 #define SERIAL_ERROR -9999
+
+#define SMC_SAFE_START_VIOLATION (1 << 0)
+#define SMC_SERIAL_ERROR		 (1 << 1)
+#define SMC_COMMAND_TIMEOUT		 (1 << 2)
+#define SMC_LIMIT_SWITCH		 (1 << 3)
+#define SMC_LOW_VIN				 (1 << 5)
+#define SMC_HIGH_VIN			 (1 << 6)
+#define SMC_OVER_TEMP			 (1 << 7)
+#define SMC_MOTOR_DRIVER_ERROR	 (1 << 8)
+#define SMC_ERR_LINE_HIGH		 (1 << 9)
+
 /**
  *  Pololu SMC control and access class.
  *
