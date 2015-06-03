@@ -20,7 +20,7 @@ namespace Pololu {
 		struct termios options;
 
 		SMCfd = open(__tty, O_RDWR | O_NOCTTY | O_NDELAY);
-		if (SMC::SMCfd == -1) {
+		if (SMCfd == -1) {
 			std::cerr << "Unable to open " << __tty << std::endl;
 			active = false;
 		} else {
@@ -50,18 +50,18 @@ namespace Pololu {
 	  unsigned char command[] = {0xA1, variableId};
 	  if(write(SMCfd, &command, sizeof(command)) == -1)
 	  {
-	    perror("smcGetVariable: error writing");
+	    perror("SMC::GetVariable: error writing");
 		return SERIAL_ERROR;
 	  }
 
 	  unsigned char response[2];
 	  if(read(SMCfd,response,2) != 2)
 	  {
-	    perror("smcGetVariable: error reading");
+	    perror("SMC::GetVariable: error reading");
 		return SERIAL_ERROR;
 	  }
 
-	  return response[0] + 256*response[1];
+	  return response[0] + 256 * response[1];
 	}
 
 	int SMC::GetTargetSpeed()
@@ -115,7 +115,7 @@ namespace Pololu {
 
 	  if (write(SMCfd, command, sizeof(command)) == -1)
 	  {
-		perror("error writing");
+		perror("SMC::error writing");
 		return SERIAL_ERROR;
 	  }
 	  return 0;
