@@ -11,6 +11,7 @@
 #include <termios.h> // POSIX terminal control definitions
 #include <sys/time.h>
 #include <sys/stat.h>
+#include <pthread.h>
 
 // Language dependencies
 #include <cstdint>
@@ -36,6 +37,12 @@ using namespace std;
 template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
+
+struct thread_data {
+	int speed;
+	int target;
+};
+struct thread_data oscillate_thread_data;
 
 int read_eQEP ()
 {
@@ -102,12 +109,20 @@ int read_eQEP ()
 //
 //}
 
-int oscillate_motor(int argc, char const *argv[]) {
+void *oscillate_motor(void *threadarg) {
+
+	struct thread_data *my_data;
+	my_data = (struct thread_data *) threadarg;
+	pthread_t tid;
+	tid = pthread_self();
+
+	cout << "tid: " << tid << endl;
+
 	int motor_speed;
 	int target; // target position in deg
 
-	motor_speed = strtol(argv[2],NULL,0);
-	target = strtol(argv[3],NULL,0);
+	motor_speed = my_data->speed;
+	target = my_data->target;
 	if (target < -360 || target > 360) {
 		target = 90;
 	}
@@ -179,9 +194,9 @@ int oscillate_motor(int argc, char const *argv[]) {
 	}
 	SMC.SetTargetSpeed(0);
 	cout << "\n" << eqep.getPosition() << endl;
-
-	return 0;
+	pthread_exit(NULL);
 }
+
 /**
  * Apply a step voltage to the motor for a period of time.
  *
@@ -268,11 +283,27 @@ int step_motor(int argc, char const *argv[]) {
 
 int main(int argc, char const *argv[]) {
 
+	pthread_t oscillate_thread;
+	int rc;
+
 	if (argc > 2) {
 		if (strtol(argv[1],NULL,0) == 1) {
 			return step_motor(argc, argv);
 		} else if (strtol(argv[1],NULL,0) == 2) {
-			return oscillate_motor(argc, argv);
+			oscillate_thread_data.speed = strtol(argv[2],NULL,0);
+			oscillate_thread_data.target = strtol(argv[3],NULL,0);
+			rc = pthread_create(&oscillate_thread, NULL, oscillate_motor, (void *) &oscillate_thread_data);
+			if (rc) {
+				cout << "Thread creation failed!!" << endl;
+				return 0;
+			}
+			for (int i=0; i<100; i++) {
+//				usleep(1000);
+				if (i % 10) {
+					cout << "...";
+				}
+			}
+			pthread_join(oscillate_thread, NULL);
 		}
 	} else {
 		cout << "Usage" << endl;
