@@ -125,8 +125,8 @@ namespace BBB
 #define PWM_BLOCK_LENGTH   0x25F ///< Length of the whole PWM subsystem
 
 /** Beaglebone Black eQEP control and access class
- * This class allows for easy setup of all of the TI Sitara's eQEP registers.
- * Also, all of the registers can be easy accessed through this class.
+  * This class allows for easy setup of all of the TI Sitara's eQEP registers.
+  * Also, all of the registers can be easy accessed through this class.
 **/
 
 class eQEP
