@@ -1,132 +1,124 @@
-/*
- * pololu_serial.cpp
+/**
+ * This library provides an interface to a Pololu Simple Motor Controller (SMC)
  *
  *  Created on: 21 May 2015
- *      Author: troy
- */
+ *      Author: Troy Dack
+**/
 // Uses POSIX functions to send and receive data to the serial
 // port of a Pololu Simple Motor Controller.
 
 #include <fcntl.h>
 #include <stdio.h>
 #include <unistd.h>
-#include "../include/pololu_serial.h"
+#include <termios.h> // POSIX terminal control definitions
+#include <iostream>
+#include "pololu_serial.h"
 
-/**
- * Reads a variable from the SMC and returns it as number between 0 and 65535.
- * Returns SERIAL_ERROR if there was an error.
- * The 'variableId' argument must be one of IDs listed in the
- * "Controller Variables" section of the user's guide.
- * For variables that are actually signed, additional processing is required
- * (@see smcGetTargetSpeed() for an example).
- * @param fd
- * @param variableId
- * @return
-*/
-int smcGetVariable(int fd, unsigned char variableId)
-{
-  unsigned char command[] = {0xA1, variableId};
-  if(write(fd, &command, sizeof(command)) == -1)
-  {
-//    perror("smcGetVariable: error writing");
-    return SERIAL_ERROR;
-  }
+namespace Pololu {
 
-  unsigned char response[2];
-  if(read(fd,response,2) != 2)
-  {
-//    perror("smcGetVariable: error reading");
-    return SERIAL_ERROR;
-  }
+	SMC::SMC(const char* __tty) {
+		struct termios options;
 
-  return response[0] + 256*response[1];
-}
+		SMCfd = open(__tty, O_RDWR | O_NOCTTY | O_NDELAY);
+		if (SMC::SMCfd == -1) {
+			std::cerr << "Unable to open " << __tty << std::endl;
+			active = false;
+		} else {
+			fcntl(SMCfd, F_SETFL, FNDELAY);
+			tcgetattr(SMCfd, &options);
+			cfsetispeed(&options, B115200);
+			cfsetospeed(&options, B115200);
+			options.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+			options.c_oflag &= ~(ONLCR | OCRNL);
+			tcsetattr(SMCfd, TCSANOW, &options);
+			// Initialise comms with motor controller
+			AutoDetectBaudRate();
+			// Exit USB safe start
+			ExitSafeStart();
+			active = true;
+			return;
+		}
+	}
 
-//
-//
-/**
- * Returns the target speed (-3200 to 3200).
- * Returns SERIAL_ERROR if there is an error.
- * @param fd the file descriptor for the open serial port
- * @return
- */
-int smcGetTargetSpeed(int fd)
-{
-  int val = smcGetVariable(fd, 20);
-  return val == SERIAL_ERROR ? SERIAL_ERROR : (signed short)val;
-}
+	SMC::~SMC() {
+		active = false;
+		close(SMCfd);
+	}
 
-/**
- * Get the current Simple Motor Controller error status
- * @param fd file descriptor for serial port
- * @return error bit field if successful, SERIAL_ERROR if there was an error sending
- */
-int smcGetErrorStatus(int fd)
-{
-  return smcGetVariable(fd,0);
-}
+	int SMC::GetVariable(unsigned char variableId)
+	{
+	  unsigned char command[] = {0xA1, variableId};
+	  if(write(SMCfd, &command, sizeof(command)) == -1)
+	  {
+	    perror("smcGetVariable: error writing");
+		return SERIAL_ERROR;
+	  }
 
-// Sends the Baud Rate auto detect command, which is required to initiate serial
-// communication.
-// Returns 0 if successful, SERIAL_ERROR if there was an error sending.
-/**
- *
- * @param fd file descriptor for serial port
- * @return 0 if successful, SERIAL_ERROR if there was an error sending
- */
-int smcAutoDetectBaudRate(int fd)
-{
-  const unsigned char command = 0xAA;
-  if (write(fd, &command, 1) == -1)
-  {
-    perror("smcAutoDetectBaudRate: error writing");
-    return SERIAL_ERROR;
-  }
-  return 0;
-}
+	  unsigned char response[2];
+	  if(read(SMCfd,response,2) != 2)
+	  {
+	    perror("smcGetVariable: error reading");
+		return SERIAL_ERROR;
+	  }
 
-/**
- * Exit USB Safe Start mode.
- * Required to enable motor driving
- * @param fd file descriptor for serial port
- * @return 0 if successful, SERIAL_ERROR if there was an error sending
- */
-int smcExitSafeStart(int fd)
-{
-  const unsigned char command = 0x83;
-  if (write(fd, &command, 1) == -1)
-  {
-    perror("smcExitSafeStart: error writing");
-    return SERIAL_ERROR;
-  }
-  return 0;
-}
+	  return response[0] + 256*response[1];
+	}
 
-/**
- * Set the Simple Motor Controller target speed
- * @param fd file descriptor for serial port
- * @param speed target speed (-3200 to 3200)
- * @return 0 if successful, SERIAL_ERROR if there was an error sending
- */int smcSetTargetSpeed(int fd, int speed)
-{
-  unsigned char command[3];
+	int SMC::GetTargetSpeed()
+	{
+	  int val = GetVariable(20);
+	  return val == SERIAL_ERROR ? SERIAL_ERROR : (signed short)val;
+	}
 
-  if (speed < 0)
-  {
-    command[0] = 0x86; // Motor Reverse
-    speed = -speed;
-  }
-  else
-  {
-    command[0] = 0x85; // Motor Forward
-  }
-  command[1] = speed & 0x1F;
-  command[2] = speed >> 5 & 0x7F;
+	int SMC::GetErrorStatus()
+	{
+	  return GetVariable(0);
+	}
 
-  if (write(fd, command, sizeof(command)) == -1)
-  {
-    perror("error writing");
-    return SERIAL_ERROR;
-  }
-  return 0;
-}
+	int SMC::AutoDetectBaudRate()
+	{
+	  const unsigned char command = 0xAA;
+	  if (write(SMCfd, &command, 1) == -1)
+	  {
+		perror("SMC::AutoDetectBaudRate: error writing");
+		return SERIAL_ERROR;
+	  }
+	  return 0;
+	}
+
+	int SMC::ExitSafeStart()
+	{
+	  const unsigned char command = 0x83;
+	  if (write(SMCfd, &command, 1) == -1)
+	  {
+		perror("SMC::ExitSafeStart: error writing");
+		return SERIAL_ERROR;
+	  }
+	  return 0;
+	}
+
+	int SMC::SetTargetSpeed(int speed)
+	{
+	  unsigned char command[3];
+
+	  if (speed < 0)
+	  {
+		command[0] = 0x86; // Motor Reverse
+		speed = -speed;
+	  }
+	  else
+	  {
+		command[0] = 0x85; // Motor Forward
+	  }
+	  command[1] = speed & 0x1F;
+	  command[2] = speed >> 5 & 0x7F;
+
+	  if (write(SMCfd, command, sizeof(command)) == -1)
+	  {
+		perror("error writing");
+		return SERIAL_ERROR;
+	  }
+	  return 0;
+	}
+
+} /* Pololu */
