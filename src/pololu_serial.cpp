@@ -4,8 +4,6 @@
  *  Created on: 21 May 2015
  *      Author: Troy Dack
 **/
-// Uses POSIX functions to send and receive data to the serial
-// port of a Pololu Simple Motor Controller.
 
 #include <fcntl.h>
 #include <stdio.h>

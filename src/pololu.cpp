@@ -8,7 +8,7 @@
 #include <iostream>  // Input-Output streams
 
 #include "BlackLib/BlackGPIO/BlackGPIO.h"		// GPIO access
-//#include "BlackLib/BlackThread/BlackThread.h"	// Thread class
+#include "BlackLib/BlackThread/BlackThread.h"	// Thread class
 
 #include "pololu.h"
 #include "threadedEQEP.h"
