@@ -12,7 +12,7 @@ LDLIBS=-L/usr/arm-linux-gnueabi/lib
 
 RM=rm -f
 
-SOURCES=./BlackADC/BlackADC.cpp ./BlackDirectory/BlackDirectory.cpp  ./BlackGPIO/BlackGPIO.cpp ./BlackI2C/BlackI2C.cpp ./BlackMutex/BlackMutex.cpp ./BlackPWM/BlackPWM.cpp ./BlackSPI/BlackSPI.cpp ./BlackThread/BlackThread.cpp ./BlackTime/BlackTime.cpp  ./BlackUART/BlackUART.cpp ./BlackCore.cpp ./examples.cpp
+SOURCES=./BlackADC/BlackADC.cpp ./BlackDirectory/BlackDirectory.cpp  ./BlackGPIO/BlackGPIO.cpp ./BlackI2C/BlackI2C.cpp ./BlackMutex/BlackMutex.cpp ./BlackPWM/BlackPWM.cpp ./BlackSPI/BlackSPI.cpp ./BlackThread/BlackThread.cpp ./BlackTime/BlackTime.cpp  ./BlackUART/BlackUART.cpp ./BlackCore.cpp
 
 OBJECTS=$(SOURCES:.cpp=.o)
 
