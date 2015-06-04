@@ -1,9 +1,25 @@
-/*
- * threadedEQEP.cpp
+/**
+ *! @file threadedEQEP.cpp
+ *! A threaded class to read an eQEP continuously.
+ *!
+ *! @author Troy Dack
+ *! @date Copyright (C) 2015
  *
- *  Created on: 4 Jun 2015
- *      Author: troy
- */
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ **/
 
 #include <iostream>
 #include <sys/time.h>
@@ -18,8 +34,8 @@
  * @param __eqep eQEP # to use (0, 1, 2)
  * @param __ppr Pulses per revoultion for encoder
  */
-threadedEQEP::threadedEQEP(int __eqep, float __ppr) {
-	eqep = new BBB::eQEP(__eqep);
+threadedEQEP::threadedEQEP(int eqep_number, float encoder_ppr) {
+	eqep = new BBB::eQEP(eqep_number);
 	eqep->resetPositionCounter();			// reset eQEP
 	eqep->positionCounterSourceSelection(0); // set Quadrature mode
 	eqep->enablePositionCompareShadow();		// enable Shadow
@@ -30,7 +46,7 @@ threadedEQEP::threadedEQEP(int __eqep, float __ppr) {
 	position.store(0);
 	dt_position.store(0);
 	velocity.store(0);
-	ppr = __ppr;
+	ppr = encoder_ppr;
 }
 
 /**
@@ -97,4 +113,8 @@ float threadedEQEP::getVelocityDeg(){
 
 int threadedEQEP::getDeltaPosition(){
 	return dt_position.load();
+}
+
+void threadedEQEP::setPosition(uint32_t position) {
+	eqep->setPosition(position);
 }
