@@ -1,18 +1,18 @@
 /*
- * readEQEP.h
+ * threadedEQEP.h
  *
  *  Created on: 4 Jun 2015
  *      Author: troy
  */
 
-#ifndef INCLUDE_READEQEP_H_
-#define INCLUDE_READEQEP_H_
+#ifndef INCLUDE_threadedEQEP_H_
+#define INCLUDE_threadedEQEP_H_
 
 #include <atomic>
 #include "bbb-eqep/bbb-eqep.h"
 #include "BlackLib/BlackThread/BlackThread.h"
 
-class readEQEP : public BlackLib::BlackThread {
+class threadedEQEP : public BlackLib::BlackThread {
 
 private:
 
@@ -21,20 +21,25 @@ private:
 	std::atomic<int> position;
 	std::atomic<int> dt_position;
 	std::atomic<float> velocity;
+	float ppr; // Pulse per revolution
 
 public:
 
-	readEQEP(int __eqep);
+	threadedEQEP(int __eqep, float __ratio);
 
 	void onStartHandler();
 
-	void Exit();
+	void stop();
 
 	int getPosition();
 
 	float getAngle();
 
+	float getAngleDeg();
+
 	float getVelocity();
+
+	float getVelocityDeg();
 
 	int getDeltaPosition();
 
@@ -42,4 +47,4 @@ public:
 
 
 
-#endif /* INCLUDE_READEQEP_H_ */
+#endif /* INCLUDE_threadedEQEP_H_ */

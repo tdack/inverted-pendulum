@@ -5,48 +5,26 @@
  *      Author: troy
  */
 
-#include <unistd.h>  // UNIX standard function definitions
-#include <fcntl.h>   // file control definitions
-#include <termios.h> // POSIX terminal control definitions
-#include <sys/time.h>
-#include <sys/stat.h>
-#include <pthread.h>
-
-// Language dependencies
-#include <cstdint>
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
 #include <iostream>  // Input-Output streams
-#include <sstream>   // String stream
-#include <fstream>   // File stream
-#include <iomanip>	 // Stream IO manipulation
-#include <math.h>
+
+#include "BlackLib/BlackGPIO/BlackGPIO.h"		// GPIO access
+//#include "BlackLib/BlackThread/BlackThread.h"	// Thread class
 
 #include "pololu.h"
-#include "bbb-eqep/bbb-eqep.h" // Memory mapped eQEP class
-#include "BlackLib/BlackGPIO/BlackGPIO.h"
-#include "BlackLib/BlackThread/BlackThread.h"
-#include "pololu_serial.h"
-#include "readEQEP.h"
-
+#include "threadedEQEP.h"
 
 using namespace std;
-
-template <typename T> int sgn(T val) {
-    return (T(0) < val) - (val < T(0));
-}
-
 
 class blinkGPIO : public BlackLib::BlackThread {
 
 private:
 	BlackLib::BlackGPIO *GPIO;
-
+	int delay;
 public:
 
-	blinkGPIO(BlackLib::gpioName __gpio) {
+	blinkGPIO(BlackLib::gpioName __gpio, int delay) {
 		GPIO = new BlackLib::BlackGPIO(__gpio, BlackLib::output);
+		this->delay = delay;
 	}
 
 	void onStartHandler() {
@@ -58,7 +36,7 @@ public:
 				value = BlackLib::low;
 			}
 			GPIO->setValue(value);
-			sleep(1);
+			sleep(delay);
 		}
 	}
 
@@ -66,30 +44,35 @@ public:
 
 int main(int argc, char const *argv[]) {
 
-	blinkGPIO *GPIO66 = new blinkGPIO(BlackLib::GPIO_66);
-	readEQEP *MotorEQEP = new readEQEP(MOTOR_EQEP );
+	blinkGPIO *GPIO66 = new blinkGPIO(BlackLib::GPIO_66, 1);
+	blinkGPIO *GPIO67 = new blinkGPIO(BlackLib::GPIO_67, 2);
+
+	threadedEQEP *MotorEQEP = new threadedEQEP(MOTOR_EQEP, ENCODER_PPR);
 
 	GPIO66->run();
+	GPIO67->run();
 	MotorEQEP->run();
 
-	BlackLib::BlackGPIO GPIO67(BlackLib::GPIO_67, BlackLib::output);
+	cout << endl;
 
-	GPIO67.setValue(BlackLib::high);
-	sleep(2);
-	cout << MotorEQEP->getPosition() << " " << MotorEQEP->getVelocity() << " " << MotorEQEP->getAngle()  << endl;
-	GPIO67.setValue(BlackLib::low);
-	sleep(2);
-	cout << MotorEQEP->getPosition() << " " << MotorEQEP->getVelocity() << " " << MotorEQEP->getAngle()  << endl;
-	GPIO67.setValue(BlackLib::high);
-	sleep(2);
-	cout << MotorEQEP->getPosition() << " " << MotorEQEP->getVelocity() << " " << MotorEQEP->getAngle()  << endl;
-	GPIO67.setValue(BlackLib::low);
+	while (MotorEQEP->getAngleDeg() < 178 || MotorEQEP->getAngleDeg() > 182)  {
+		cout << "\r" << MotorEQEP->getAngleDeg();
+		usleep(20);
+	}
+
+	cout << "Vertical! \n Starting!" << endl;
+
+	for (int i=0; i < 10000; i++) {
+		cout << "\r" << i << "  " << MotorEQEP->getAngleDeg() << "                ";
+		usleep(50);
+	}
 
 	if (MotorEQEP->isRunning()) {
-		MotorEQEP->Exit();
+		MotorEQEP->stop();
 	}
 
 	WAIT_THREAD_FINISH(GPIO66);
+	WAIT_THREAD_FINISH(GPIO67);
 	WAIT_THREAD_FINISH(MotorEQEP);
 	return 0;
 }
