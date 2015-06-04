@@ -1,9 +1,25 @@
-/*
- * threadedEQEP.h
+/**
+ *! @file threadedEQEP.h
+ *! A threaded class to read an eQEP continuously.
+ *!
+ *! @author Troy Dack
+ *! @date Copyright (C) 2015
  *
- *  Created on: 4 Jun 2015
- *      Author: troy
- */
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ **/
 
 #ifndef INCLUDE_threadedEQEP_H_
 #define INCLUDE_threadedEQEP_H_
@@ -25,7 +41,7 @@ private:
 
 public:
 
-	threadedEQEP(int __eqep, float __ratio);
+	threadedEQEP(int eqep_number, float encoder_ppr);
 
 	void onStartHandler();
 
@@ -43,8 +59,8 @@ public:
 
 	int getDeltaPosition();
 
+	void setPosition(uint32_t position);
+
 };
-
-
 
 #endif /* INCLUDE_threadedEQEP_H_ */
