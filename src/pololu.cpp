@@ -78,11 +78,14 @@ int main(int argc, char const *argv[]) {
 
 	cout << "Vertical! \n Starting!" << endl;
 
+	MotorEQEP->setPosition(0);
+
 	for (int i=0; i < 10000; i++) {
 		cout << "\r" << i << "  " << MotorEQEP->getAngleDeg() << "                ";
 		usleep(50);
 	}
 
+	cout << endl << "Waiting for threads to finish ... ";
 	if (MotorEQEP->isRunning()) {
 		MotorEQEP->stop();
 	}
@@ -90,5 +93,6 @@ int main(int argc, char const *argv[]) {
 	WAIT_THREAD_FINISH(GPIO66);
 	WAIT_THREAD_FINISH(GPIO67);
 	WAIT_THREAD_FINISH(MotorEQEP);
+	cout << "Done!" << endl;
 	return 0;
 }
