@@ -22,12 +22,11 @@
  **/
 
 #include <iostream>  // Input-Output streams
-
-#include "BlackLib/BlackGPIO/BlackGPIO.h"		// GPIO access
-#include "BlackLib/BlackThread/BlackThread.h"	// Thread class
-
+#include <cmath>
 #include "pololu.h"
 #include "threadedEQEP.h"
+#include "BlackLib/BlackGPIO/BlackGPIO.h"		// GPIO access
+#include "pid.h"
 
 using namespace std;
 
@@ -60,39 +59,29 @@ public:
 
 int main(int argc, char const *argv[]) {
 
-	blinkGPIO *GPIO66 = new blinkGPIO(BlackLib::GPIO_66, 1);
-	blinkGPIO *GPIO67 = new blinkGPIO(BlackLib::GPIO_67, 2);
+	threadedEQEP *pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, ENCODER_PPR);
 
-	threadedEQEP *MotorEQEP = new threadedEQEP(MOTOR_EQEP, ENCODER_PPR);
+	pendulumEQEP->run();
 
-	GPIO66->run();
-	GPIO67->run();
-	MotorEQEP->run();
+	cout << "Raise pendulum" << endl;
 
-	cout << endl;
-
-	while (MotorEQEP->getAngleDeg() < 178 || MotorEQEP->getAngleDeg() > 182)  {
-		cout << "\r" << MotorEQEP->getAngleDeg();
+	while (abs(pendulumEQEP->getAngleDeg()) < 178 || abs(pendulumEQEP->getAngleDeg() > 182))  {
+		cout << "\r    " << pendulumEQEP->getAngleDeg();
 		usleep(20);
 	}
 
 	cout << "Vertical! \n Starting!" << endl;
+	pendulumEQEP->stop();
 
-	MotorEQEP->setPosition(0);
+	pid *Controller = new pid(11.7, 50, 8, 40);
 
-	for (int i=0; i < 10000; i++) {
-		cout << "\r" << i << "  " << MotorEQEP->getAngleDeg() << "                ";
-		usleep(50);
-	}
+	Controller->run();
 
-	cout << endl << "Waiting for threads to finish ... ";
-	if (MotorEQEP->isRunning()) {
-		MotorEQEP->stop();
-	}
+	sleep(30);
 
-	WAIT_THREAD_FINISH(GPIO66);
-	WAIT_THREAD_FINISH(GPIO67);
-	WAIT_THREAD_FINISH(MotorEQEP);
+	Controller->stop();
+	WAIT_THREAD_FINISH(Controller);
+
 	cout << "Done!" << endl;
 	return 0;
 }
