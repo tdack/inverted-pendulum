@@ -22,7 +22,6 @@
  **/
 
 #include <fcntl.h>
-#include <stdio.h>
 #include <unistd.h>
 #include <termios.h> // POSIX terminal control definitions
 #include <iostream>
@@ -30,12 +29,12 @@
 
 namespace Pololu {
 
-	SMC::SMC(const char* __tty) {
+	SMC::SMC(const char* tty) {
 		struct termios options;
 
-		SMCfd = open(__tty, O_RDWR | O_NOCTTY | O_NDELAY);
+		SMCfd = open(tty, O_RDWR | O_NOCTTY | O_NDELAY);
 		if (SMC::SMCfd == -1) {
-			std::cerr << "Unable to open " << __tty << std::endl;
+			std::cerr << "Unable to open " << tty << std::endl;
 			active = false;
 		} else {
 			fcntl(SMCfd, F_SETFL, FNDELAY);
@@ -134,5 +133,7 @@ namespace Pololu {
 	  }
 	  return 0;
 	}
-
+	int SMC::SetTargetSpeed(float speed) {
+		return SetTargetSpeed( (int)(3200 * speed/100) );
+	}
 } /* Pololu */

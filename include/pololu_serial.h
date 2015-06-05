@@ -24,23 +24,21 @@
 #ifndef INCLUDE_POLOLU_SERIAL_H_
 #define INCLUDE_POLOLU_SERIAL_H_
 
-#include <fcntl.h>
-#include <stdio.h>
-#include <unistd.h>
-
-
 namespace Pololu {
-#define SERIAL_ERROR -9999
 
-#define SMC_SAFE_START_VIOLATION (1 << 0)
-#define SMC_SERIAL_ERROR		 (1 << 1)
-#define SMC_COMMAND_TIMEOUT		 (1 << 2)
-#define SMC_LIMIT_SWITCH		 (1 << 3)
-#define SMC_LOW_VIN				 (1 << 5)
-#define SMC_HIGH_VIN			 (1 << 6)
-#define SMC_OVER_TEMP			 (1 << 7)
-#define SMC_MOTOR_DRIVER_ERROR	 (1 << 8)
-#define SMC_ERR_LINE_HIGH		 (1 << 9)
+const unsigned int SERIAL_ERROR = -9999;
+
+const unsigned int SMC_SAFE_START_VIOLATION = (1 << 0);
+const unsigned int SMC_SERIAL_ERROR		 	= (1 << 1);
+const unsigned int SMC_COMMAND_TIMEOUT		= (1 << 2);
+const unsigned int SMC_LIMIT_SWITCH		 	= (1 << 3);
+const unsigned int SMC_LOW_VIN				= (1 << 5);
+const unsigned int SMC_HIGH_VIN			 	= (1 << 6);
+const unsigned int SMC_OVER_TEMP			= (1 << 7);
+const unsigned int SMC_MOTOR_DRIVER_ERROR	= (1 << 8);
+const unsigned int SMC_ERR_LINE_HIGH		= (1 << 9);
+const int SMC_MAX_SPEED			= 2560; // Max speed controller will accept
+const int SMC_MIN_SPEED			= 128;  // Min speed to move motor
 
 /**
  *  Pololu SMC control and access class.
@@ -64,9 +62,9 @@ public:
 	 * Initialises comms with SMC, auto-detects baud rate and sends USB Safe start
 	 * command.
 	 *
-	 * @param __tty  path to /dev/tty of UART, eg: /dev/ttyO1
+	 * @param tty  path to /dev/tty of UART, eg: /dev/ttyO1
 	 **/
-	SMC(const char* __tty);
+	SMC(const char* tty);
 
 	/**
 	 * Destructor
@@ -113,10 +111,12 @@ public:
 
 	/**
 	 * Sets the SMC's target speed.
-	 * @param speed target speed (-3200 to 3200) to send to SMC
+	 * @param (int)speed target speed (-3200 to 3200) to send to SMC
+	 * @param (float)speed target speed as a percentage (-100.0 to 100.0)
 	 * @return 0 if successful, SERIAL_ERROR if there was an error sending.
 	 **/
 	int SetTargetSpeed(int speed);
+	int SetTargetSpeed(float speed);
 }; /* SMC */
 
 } /* Pololu */

@@ -24,8 +24,6 @@
 #include <iostream>
 #include <sys/time.h>
 #include <math.h>
-#include "bbb-eqep/bbb-eqep.h"
-#include "BlackLib/BlackThread/BlackThread.h"
 #include "threadedEQEP.h"
 
 /**
@@ -88,7 +86,6 @@ void threadedEQEP::onStartHandler() {
 
 void threadedEQEP::stop(){
 	bExit.store(true);
-	BlackThread::stop();
 }
 
 int threadedEQEP::getPosition() {
