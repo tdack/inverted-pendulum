@@ -30,6 +30,10 @@ pid::pid(float motor_voltage, float k_p, float k_i, float k_d) {
 	this->k_p = k_p;
 	this->k_i = k_i;
 	this->k_d = k_d;
+	err_p = 0.0; // proportional error
+	err_i = 0.0; // integral error
+	err_d = 0.0; // derivative error
+	motor_speed = 0.0;
 	motorEQEP = new threadedEQEP(MOTOR_EQEP, MOTOR_PPR);
 	pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, ENCODER_PPR);
 	bExit.store(false);
@@ -37,11 +41,7 @@ pid::pid(float motor_voltage, float k_p, float k_i, float k_d) {
 
 void pid::onStartHandler() {
 
-	float err_p = 0.0;
-	float err_i = 0.0;
-	float err_d = 0.0;
 	float u = 0.0;
-	float motor_speed = 0.0;
 
 	motorEQEP->run();
 	pendulumEQEP->run();
@@ -55,7 +55,7 @@ void pid::onStartHandler() {
 		err_d = pendulumEQEP->getVelocity() - 0;
 		err_i = err_p + err_d;
 		u = -((k_p * err_p) + (k_d * err_d) + (k_i * err_i));
-		motor_speed = 100 / motor_voltage * u;
+		motor_speed = 100 / motor_voltage * u; // Calculate speed as a percentage
 
 		if (motor_speed >= 100) {
 			motor_speed = 100;
