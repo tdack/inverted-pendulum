@@ -29,4 +29,3 @@ Black hardware. They are used in accordance with their respective licenses.
  + [BlackLib](https://github.com/yigityuce/BlackLib) - GPIO, PWM and threading library
  + [BBB-eQEP](https://github.com/jadedanemone/BBB-eQEP) - Memory mapped library for fast access to eQEPs.
  
-  

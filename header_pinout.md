@@ -13,8 +13,8 @@
 	P8-2		) 
 
 	P8-5		) VDD_5V -  From voltage regulator / battery
-	P8-7		)        -  or from barrel jack and power adaptor
-				)        -  Required for encoders 
+	P8-6		)        -  or from barrel jack and power adaptor
+			)        -  Required for encoders 
 
 	P9-24		UART1 Tx
 	P9-26		UART1 Rx
