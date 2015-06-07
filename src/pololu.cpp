@@ -30,41 +30,18 @@
 
 using namespace std;
 
-class blinkGPIO : public BlackLib::BlackThread {
-
-private:
-	BlackLib::BlackGPIO *GPIO;
-	int delay;
-public:
-
-	blinkGPIO(BlackLib::gpioName __gpio, int delay) {
-		GPIO = new BlackLib::BlackGPIO(__gpio, BlackLib::output);
-		this->delay = delay;
-	}
-
-	void onStartHandler() {
-		BlackLib::digitalValue value = BlackLib::low;
-		for (int i=0; i < 10; i++) {
-			if (value == BlackLib::low) {
-				value = BlackLib::high;
-			} else {
-				value = BlackLib::low;
-			}
-			GPIO->setValue(value);
-			sleep(delay);
-		}
-	}
-
-};
-
 int main(int argc, char const *argv[]) {
 
+	// Create a new EQEP object to monitor the pendulum position
 	threadedEQEP *pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, ENCODER_PPR);
 
+	// Start the thread running
 	pendulumEQEP->run();
 
-	cout << "Raise pendulum" << endl;
+	cout << "Raise the pendulum" << endl;
 
+	// Wait until the pendulum is @ 180 +-2 deg
+	// Assumes pendulum starts hanging vertically down
 	while (abs(pendulumEQEP->getAngleDeg()) < 178 || abs(pendulumEQEP->getAngleDeg() > 182))  {
 		cout << "\r    " << pendulumEQEP->getAngleDeg();
 		usleep(20);
@@ -73,10 +50,12 @@ int main(int argc, char const *argv[]) {
 	cout << "Vertical! \n Starting!" << endl;
 	pendulumEQEP->stop();
 
+	// Create a new PID controller thread
 	pid *Controller = new pid(11.7, 50, 8, 40);
 
 	Controller->run();
 
+	// Let the thread run for 30 seconds
 	sleep(30);
 
 	Controller->stop();
