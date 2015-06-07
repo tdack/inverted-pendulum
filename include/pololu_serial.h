@@ -37,7 +37,7 @@ const unsigned int SMC_HIGH_VIN			 	= (1 << 6);
 const unsigned int SMC_OVER_TEMP			= (1 << 7);
 const unsigned int SMC_MOTOR_DRIVER_ERROR	= (1 << 8);
 const unsigned int SMC_ERR_LINE_HIGH		= (1 << 9);
-const int SMC_MAX_SPEED			= 2560; // Max speed controller will accept
+const int SMC_MAX_SPEED			= 3200; // Max speed controller will accept
 const int SMC_MIN_SPEED			= 128;  // Min speed to move motor
 
 /**
