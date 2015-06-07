@@ -43,9 +43,13 @@ void pid::onStartHandler() {
 
 	float u = 0.0;
 
+	// Start threads to read eQEPs
 	motorEQEP->run();
 	pendulumEQEP->run();
 
+	// @TODO add thread to monitor a GPIO for a button press to stop the process
+
+	// Simple Motor Controller object
 	Pololu::SMC *SMC = new Pololu::SMC(POLOLU_TTY);
 
 	std::cout << "Starting PID control loop ..." << std::endl;
@@ -59,7 +63,7 @@ void pid::onStartHandler() {
 
 		if (motor_speed >= 100) {
 			motor_speed = 100;
-		} else if (motor_speed<= -100) {
+		} else if (motor_speed <= -100) {
 			motor_speed= -100;
 		}
 		SMC->SetTargetSpeed(motor_speed);
