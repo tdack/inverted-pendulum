@@ -11,7 +11,7 @@ The BeagleBone Black is interfaced to the following peripherals:
   
 The encoders are read via the built in eQEP modules on the BeagleBone Black
 
-See header_pinout.md for connections used.
+See [header_pinout](header_pinout.md) for connections used.
 
 ## Device Tree Overlays
 
