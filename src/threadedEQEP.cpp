@@ -114,4 +114,5 @@ int threadedEQEP::getDeltaPosition(){
 
 void threadedEQEP::setPosition(uint32_t position) {
 	eqep->setPosition(position);
+	this->position.store(position);
 }
