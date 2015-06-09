@@ -46,9 +46,8 @@ void pid::onStartHandler() {
 	// Start threads to read eQEPs
 	motorEQEP->run();
 	pendulumEQEP->run();
-
-	// @TODO add thread to monitor a GPIO for a button press to stop the process
-
+	pendulumEQEO->setPosition(0); //start at zero
+	
 	// Simple Motor Controller object
 	Pololu::SMC *SMC = new Pololu::SMC(POLOLU_TTY);
 
@@ -79,7 +78,3 @@ void pid::stop() {
 	pendulumEQEP->stop();
 	bExit.store(true);
 }
-
-
-
-
