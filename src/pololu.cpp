@@ -24,6 +24,7 @@
 #include <iostream>  // Input-Output streams
 #include <cmath>
 #include "pololu.h"
+#include "pololu_serial.h"
 #include "threadedEQEP.h"
 #include "BlackLib/BlackGPIO/BlackGPIO.h"		// GPIO access
 #include "pid.h"
@@ -32,8 +33,12 @@ using namespace std;
 
 int main(int argc, char const *argv[]) {
 
-	// Create a new EQEP object to monitor the pendulum position
+	// Create new EQEPs object to monitor the pendulum & motor position
 	threadedEQEP *pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, ENCODER_PPR);
+	threadedEQEP *motorEQEP = new threadedEQEP(MOTOR_EQEP, MOTOR_PPR);
+
+	// Create a Simple Motor Controller object
+	Pololu::SMC *SMC = new Pololu::SMC(POLOLU_TTY);
 
 	// Start the thread running
 	pendulumEQEP->run();
@@ -47,11 +52,11 @@ int main(int argc, char const *argv[]) {
 		usleep(20);
 	}
 
-	cout << "Vertical! \n Starting!" << endl;
+	cout << "\n\n Vertical! \n Starting!" << endl;
 	pendulumEQEP->stop();
 
 	// Create a new PID controller thread
-	pid *Controller = new pid(11.7, 50, 8, 40);
+	pid *Controller = new pid(11.7, 50, 8, 40, pendulumEQEP, motorEQEP, SMC);
 
 	Controller->run();
 
@@ -59,7 +64,11 @@ int main(int argc, char const *argv[]) {
 	sleep(30);
 
 	Controller->stop();
+
+	// Don't quit until all threads are finished
 	WAIT_THREAD_FINISH(Controller);
+	WAIT_THREAD_FINISH(motorEQEP);
+	WAIT_THREAD_FINISH(pendulumEQEP);
 
 	cout << "Done!" << endl;
 	return 0;
