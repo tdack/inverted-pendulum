@@ -26,6 +26,7 @@
 #define INCLUDE_PID_H_
 
 #include <atomic>
+#include "pololu_serial.h"
 #include "threadedEQEP.h"
 
 class pid : public BlackLib::BlackThread {
@@ -43,10 +44,22 @@ private:
 	std::atomic<bool> bExit; // flag that thread should quit
 	threadedEQEP *motorEQEP;
 	threadedEQEP *pendulumEQEP;
+	Pololu::SMC *SMC;
 
 public:
 
-	pid(float motor_voltage, float k_p, float k_i, float k_d);
+	/**
+	 * Proportional-Integral-Derivative controller for inverted pendulum
+	 *
+	 * @param motor_voltage maxium voltage used to drive motor at full speed
+	 * @param k_p		proportional control constant
+	 * @param k_i		integral control constant
+	 * @param k_d		derivative control constant
+	 * @param pendulum	reference to a threadedEQEP object for the pendulum encoder
+	 * @param motor		reference to a threadedEQEP object for the motor encoder
+	 * @param smc		reference to a Pololu::SMC Simple Motor Controller object
+	 */
+	pid(float motor_voltage, float k_p, float k_i, float k_d, threadedEQEP *&pendulum, threadedEQEP *&motor, Pololu::SMC *&smc);
 
 	void onStartHandler();
 
