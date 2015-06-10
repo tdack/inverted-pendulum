@@ -46,7 +46,7 @@ void pid::onStartHandler() {
 	// Start threads to read eQEPs
 	motorEQEP->run();
 	pendulumEQEP->run();
-	pendulumEQEO->setPosition(0); //start at zero
+	pendulumEQEP->setPosition(0); //start at zero
 	
 	// Simple Motor Controller object
 	Pololu::SMC *SMC = new Pololu::SMC(POLOLU_TTY);
