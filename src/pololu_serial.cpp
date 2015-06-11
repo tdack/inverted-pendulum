@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <termios.h> // POSIX terminal control definitions
 #include <iostream>
+#include <stdexcept>
 #include "pololu_serial.h"
 
 namespace Pololu {
@@ -34,8 +35,7 @@ namespace Pololu {
 
 		SMCfd = open(tty, O_RDWR | O_NOCTTY | O_NDELAY);
 		if (SMC::SMCfd == -1) {
-			std::cerr << "Unable to open " << tty << std::endl;
-			active = false;
+			throw std::runtime_error("Unable to open " + std::string(tty));
 		} else {
 			fcntl(SMCfd, F_SETFL, FNDELAY);
 			tcgetattr(SMCfd, &options);
@@ -48,7 +48,6 @@ namespace Pololu {
 			AutoDetectBaudRate();
 			// Exit USB safe start
 			ExitSafeStart();
-			active = true;
 			return;
 		}
 	}

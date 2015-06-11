@@ -24,6 +24,7 @@
 #include <iostream>
 #include <sys/time.h>
 #include <math.h>
+#include <stdexcept>
 #include "threadedEQEP.h"
 
 /**
@@ -33,7 +34,12 @@
  * @param __ppr Pulses per revoultion for encoder
  */
 threadedEQEP::threadedEQEP(int eqep_number, float encoder_ppr) {
-	eqep = new BBB::eQEP(eqep_number);
+	try {
+		eqep = new BBB::eQEP(eqep_number);
+	}
+	catch (std::runtime_error& err) {
+		throw std::runtime_error("Failed to access eQEP");
+	}
 	eqep->resetPositionCounter();			// reset eQEP
 	eqep->positionCounterSourceSelection(0); // set Quadrature mode
 	eqep->enablePositionCompareShadow();		// enable Shadow

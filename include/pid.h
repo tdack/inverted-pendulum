@@ -44,7 +44,6 @@ private:
 	std::atomic<bool> bExit; // flag that thread should quit
 	threadedEQEP *motorEQEP;
 	threadedEQEP *pendulumEQEP;
-	Pololu::SMC *SMC;
 
 public:
 
@@ -55,11 +54,8 @@ public:
 	 * @param k_p		proportional control constant
 	 * @param k_i		integral control constant
 	 * @param k_d		derivative control constant
-	 * @param pendulum	reference to a threadedEQEP object for the pendulum encoder
-	 * @param motor		reference to a threadedEQEP object for the motor encoder
-	 * @param smc		reference to a Pololu::SMC Simple Motor Controller object
 	 */
-	pid(float motor_voltage, float k_p, float k_i, float k_d, threadedEQEP *&pendulum, threadedEQEP *&motor, Pololu::SMC *&smc);
+	pid(float motor_voltage, float k_p, float k_i, float k_d);
 
 	void onStartHandler();
 

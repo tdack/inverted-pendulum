@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <errno.h>
+#include <stdexcept>
 
 #include "bbb-eqep.h"
 #include "debug.h"
@@ -48,8 +49,7 @@ eQEP_address_(eQEP_address)
   eQEPFd = open("/dev/mem", O_RDWR | O_SYNC);
   if (eQEPFd < 0)
   {
-    debug(0, "eQEP class: Can't open /dev/mem\n");
-    return;
+	throw std::runtime_error("Unable to open eQEP" + std::to_string((int)eqep_addr) );
   }
   
   // Map the PWM memory range

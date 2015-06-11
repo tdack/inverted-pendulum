@@ -25,7 +25,7 @@
 #include "pololu_serial.h"
 #include "pololu.h"
 
-pid::pid(float motor_voltage, float k_p, float k_i, float k_d, threadedEQEP *&pendulum, threadedEQEP *&motor, Pololu::SMC *&smc) {
+pid::pid(float motor_voltage, float k_p, float k_i, float k_d) {
 	this->motor_voltage = motor_voltage;
 	this->k_p = k_p;
 	this->k_i = k_i;
@@ -34,9 +34,8 @@ pid::pid(float motor_voltage, float k_p, float k_i, float k_d, threadedEQEP *&pe
 	err_i = 0.0; // integral error
 	err_d = 0.0; // derivative error
 	motor_speed = 0.0;
-	motorEQEP = motor; 		 // } store reference to motor and encoder
-	pendulumEQEP = pendulum; // } threadedEQEP objects in the class
-	SMC = smc;
+	pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, ENCODER_PPR);
+	motorEQEP = new threadedEQEP(MOTOR_EQEP, MOTOR_PPR);
 	bExit.store(false);
 }
 
@@ -49,6 +48,10 @@ void pid::onStartHandler() {
 	motorEQEP->setPosition(0);
 	pendulumEQEP->run();
 	pendulumEQEP->setPosition(0); //start at zero
+
+	// Create a Simple Motor Controller object
+	Pololu::SMC *SMC = new Pololu::SMC(POLOLU_TTY);
+
 	SMC->SetTargetSpeed(0);
 	
 	std::cout << "Starting PID control loop ..." << std::endl;
@@ -74,6 +77,5 @@ void pid::onStartHandler() {
 void pid::stop() {
 	motorEQEP->stop();
 	pendulumEQEP->stop();
-	SMC->SetTargetSpeed(0);
 	bExit.store(true);
 }
