@@ -53,9 +53,6 @@ class SMC {
 private:
 	int SMCfd; /**< File descriptor to the serial port */
 
-	bool active; /**< Set to true when serial port is opened and USB
-					  Safe Start has been sent */
-
 public:
 	/**
 	 * Constructor.  Pass the tty device entry to be used for UART communication.
