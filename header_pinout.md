@@ -16,7 +16,7 @@
 	P8-6		)        -  or from barrel jack and power adaptor
 			)        -  Required for encoders 
 
-	P9-24		UART1 Tx
-	P9-26		UART1 Rx
+	P9-11		UART4 Rx
+	P9-13		UART4 Tx
 	P9-27		eQEP0B_in	Motor encoder
 	P9-42		eQEP0A_in	Motor encoder
