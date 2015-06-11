@@ -37,8 +37,6 @@ int main(int argc, char const *argv[]) {
 	threadedEQEP *pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, ENCODER_PPR);
 	threadedEQEP *motorEQEP = new threadedEQEP(MOTOR_EQEP, MOTOR_PPR);
 
-	// Create a Simple Motor Controller object
-	Pololu::SMC *SMC = new Pololu::SMC(POLOLU_TTY);
 
 	// Start the thread running
 	pendulumEQEP->run();
@@ -56,7 +54,7 @@ int main(int argc, char const *argv[]) {
 	pendulumEQEP->stop();
 
 	// Create a new PID controller thread
-	pid *Controller = new pid(11.7, 50, 8, 40, pendulumEQEP, motorEQEP, SMC);
+	pid *Controller = new pid(11.7, 50, 8, 40);
 
 	Controller->run();
 
