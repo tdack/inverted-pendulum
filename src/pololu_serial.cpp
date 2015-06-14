@@ -53,7 +53,6 @@ namespace Pololu {
 	}
 
 	SMC::~SMC() {
-		active = false;
 		close(SMCfd);
 	}
 
