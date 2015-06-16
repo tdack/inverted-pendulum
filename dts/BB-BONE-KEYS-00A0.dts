@@ -13,7 +13,9 @@
 		__overlay__ {
 			pushbutton_pins: pinmux_pushbutton_pins {
 				pinctrl-single,pins = <
+					0x078 0x37 // P9_12 pull-up mode 7 GPIO1_28
 					0x040 0x37 // P9_15 pull-up mode 7 GPIO1_16
+					0x044 0x37 // P9_23 pull-up mode 7 GPIO1_17
 				>;
 			};
 		};
@@ -31,13 +33,29 @@
 				pinctrl-names = "default";
 				pinctrl-0 = <&pushbutton_pins>;
 				#address-cells = <1>;
-				#size-cells	= <1>;
+				#size-cells	= <0>;
 				
-				button_P9_15 {
+				button@1 {
 					debounce_interval = <50>;
 					linux,code = <28>;
-					label = "button9_15";
+					label = "enter";
+					gpios = <&gpio2 60 0x1>;
+					gpio-key,wakeup;
+					autorepeat;
+				};
+				button@2 {
+					debounce_interval = <50>;
+					linux,code = <105>;
+					label = "left";
 					gpios = <&gpio2 16 0x1>;
+					gpio-key,wakeup;
+					autorepeat;
+				};
+				button@3 {
+					debounce_interval = <50>;
+					linux,code = <106>;
+					label = "right";
+					gpios = <&gpio2 17 0x1>;
 					gpio-key,wakeup;
 					autorepeat;
 				};
