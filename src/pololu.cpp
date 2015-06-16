@@ -21,49 +21,55 @@
  *
  **/
 
-#include <BlackLib/BlackThread/BlackThread.h>
-#include <pid.h>
+#include <fcntl.h>
+#include <linux/input.h>
 #include <pololu.h>
-#include <threadedEQEP.h>
 #include <unistd.h>
-#include <cmath>
+#include <cstdio>
 #include <iostream>  // Input-Output streams
 
 using namespace std;
 
+#define KEY_PRESS 1
+#define KEY_RELEASE 0
+
 int main(int argc, char const *argv[]) {
 
-	// Create new EQEPs object to monitor the pendulum position
-	threadedEQEP *pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, ENCODER_PPR);
-
-	// Start the thread running
-	pendulumEQEP->run();
-
-	cout << "Raise the pendulum" << endl;
-
-	// Wait until the pendulum is @ 180 +-2 deg
-	// Assumes pendulum starts hanging vertically down
-	while (abs(pendulumEQEP->getAngleDeg()) < 178 || abs(pendulumEQEP->getAngleDeg() > 182))  {
-		cout << "\r    " << pendulumEQEP->getAngleDeg();
-		usleep(20);
+	int fd, count=0;
+	struct input_event event[64];
+	if(getuid()!=0) {
+		cout << "You must run this program as root. Exiting." << endl;
+		return -1;
+	}
+	cout << "Starting BB-BONE-GPIO Test (press 10 times to end):" << endl;
+	if ((fd = open("/dev/input/event1", O_RDONLY)) < 0) {
+		perror("Failed to open event1 input device. Exiting.");
+		return -1;
 	}
 
-	cout << "\n\n Vertical! \n Starting!" << endl;
-	pendulumEQEP->stop();
-
-	// Create a new PID controller thread
-	pid *Controller = new pid(11.7, 50, 8, 40);
-
-	Controller->run();
-
-	// Let the thread run for 30 seconds
-	sleep(30);
-
-	Controller->stop();
-
-	// Don't quit until all threads are finished
-	WAIT_THREAD_FINISH(Controller);
-	WAIT_THREAD_FINISH(pendulumEQEP);
+	while(count < 20) {  // Press and Release are one loop each
+		int numbytes = (int)read(fd, event, sizeof(event));
+		int numevents = numbytes/sizeof(struct input_event);
+		if (numbytes < (int)sizeof(struct input_event)) {
+			perror("The input read was invalid. Exiting.");
+			return -1;
+		}
+		if (numevents > 0) {
+			int type = event[0].type;
+			int val  = event[0].value;
+			int code = event[0].code;
+			if (type == EV_KEY) {
+				if (val == KEY_PRESS) {
+					cout << "Press  : Code "<< code <<" Value "<< val<< endl;
+				}
+				if (val == KEY_RELEASE) {
+					cout << "Release: Code "<< code <<" Value "<< val<< endl;
+				}
+			}
+	      count++;
+	   }
+	}
+	close(fd);
 
 	cout << "Done!" << endl;
 	return 0;
