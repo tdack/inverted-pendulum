@@ -21,36 +21,39 @@
  *
  **/
 
-#include <iostream>
-#include <sys/time.h>
 #include <math.h>
+#include <stddef.h>
+#include <sys/time.h>
+#include <threadedEQEP.h>
+#include <cstdbool>
+#include <iostream>
 #include <stdexcept>
-#include "threadedEQEP.h"
 
 /**
  * threadedEQEP threaded class. Reads eQEP position information continuously
  *
- * @param __eqep eQEP # to use (0, 1, 2)
- * @param __ppr Pulses per revoultion for encoder
+ * @param eqep_number eQEP # to use (0, 1, 2)
+ * @param encoder_ppr Pulses per revoultion for encoder
  */
-threadedEQEP::threadedEQEP(int eqep_number, float encoder_ppr) {
+threadedEQEP::threadedEQEP(int eqep_number, float encoder_ppr)
+	: bExit(0)
+	, position(0)
+	, dt_position(0)
+	, velocity(0.0)
+	, ppr(encoder_ppr)
+{
 	try {
 		eqep = new BBB::eQEP(eqep_number);
 	}
 	catch (std::runtime_error& err) {
 		throw std::runtime_error("Failed to access eQEP");
 	}
-	eqep->resetPositionCounter();			// reset eQEP
+	eqep->resetPositionCounter();			 // reset eQEP
 	eqep->positionCounterSourceSelection(0); // set Quadrature mode
-	eqep->enablePositionCompareShadow();		// enable Shadow
+	eqep->enablePositionCompareShadow();	 // enable Shadow
 	eqep->setCaptureLatchMode(BBB::eQEP::CLMCPU);
 	eqep->enableCaptureUnit();
 	eqep->setUnitPeriod(1000);
-	bExit = false;
-	position.store(0);
-	dt_position.store(0);
-	velocity.store(0);
-	ppr = encoder_ppr;
 }
 
 /**
@@ -75,7 +78,7 @@ void threadedEQEP::onStartHandler() {
 		new_pos = eqep->getPosition();
 		gettimeofday(&new_time,NULL);
 		// Time between last read and this one in seconds
-		dt = ((1000000 * new_time.tv_sec + new_time.tv_usec)-(1000000 * old_time.tv_sec + old_time.tv_usec))/1e6;
+		dt = ((new_time.tv_sec + new_time.tv_usec/1e6)-(old_time.tv_sec + old_time.tv_usec/1e6));
 		// Angle between last read and this read in radians
 		w = (new_pos - old_pos)/ppr * 2.0 * M_PI;
 		// Velocity for this period
