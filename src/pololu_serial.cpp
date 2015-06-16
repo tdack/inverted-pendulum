@@ -22,11 +22,12 @@
  **/
 
 #include <fcntl.h>
-#include <unistd.h>
+#include <pololu_serial.h>
 #include <termios.h> // POSIX terminal control definitions
-#include <iostream>
+#include <unistd.h>
+#include <cstdio>
 #include <stdexcept>
-#include "pololu_serial.h"
+#include <string>
 
 namespace Pololu {
 
@@ -53,7 +54,6 @@ namespace Pololu {
 	}
 
 	SMC::~SMC() {
-		active = false;
 		close(SMCfd);
 	}
 

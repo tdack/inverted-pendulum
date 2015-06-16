@@ -20,10 +20,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  **/
+
+#include <pid.h>
+#include <pololu.h>
+#include <cstdbool>
 #include <iostream>
-#include "pid.h"
-#include "pololu_serial.h"
-#include "pololu.h"
 
 pid::pid(float motor_voltage, float k_p, float k_i, float k_d) {
 	this->motor_voltage = motor_voltage;
@@ -57,8 +58,8 @@ void pid::onStartHandler() {
 	std::cout << "Starting PID control loop ..." << std::endl;
 	while (!bExit.load()) {
 		yield();
-		err_p = pendulumEQEP->getAngle() - 0;
-		err_d = pendulumEQEP->getVelocity() - 0;
+		err_p = 0 + pendulumEQEP->getAngle();
+		err_d = 0 + pendulumEQEP->getVelocity();
 		err_i = err_p + err_d;
 		u = -((k_p * err_p) + (k_d * err_d) + (k_i * err_i));
 		motor_speed = 100 / motor_voltage * u; // Calculate speed as a percentage
@@ -69,7 +70,7 @@ void pid::onStartHandler() {
 			motor_speed= -100;
 		}
 		SMC->SetTargetSpeed(motor_speed);
-		std::cout << "\rp: " << err_p << "  i: " << err_i << "  d:" << err_d << "  u:" << u << "  motor_speed:" << motor_speed << "      ";
+		std::cout << "p: " << err_p << " \ti: " << err_i << " \td:" << err_d << " \tu:" << u << " \tmotor_speed:" << motor_speed << std::endl;
 	}
 	SMC->SetTargetSpeed(0);
 }

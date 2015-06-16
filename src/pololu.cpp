@@ -21,22 +21,20 @@
  *
  **/
 
-#include <iostream>  // Input-Output streams
+#include <BlackLib/BlackThread/BlackThread.h>
+#include <pid.h>
+#include <pololu.h>
+#include <threadedEQEP.h>
+#include <unistd.h>
 #include <cmath>
-#include "pololu.h"
-#include "pololu_serial.h"
-#include "threadedEQEP.h"
-#include "BlackLib/BlackGPIO/BlackGPIO.h"		// GPIO access
-#include "pid.h"
+#include <iostream>  // Input-Output streams
 
 using namespace std;
 
 int main(int argc, char const *argv[]) {
 
-	// Create new EQEPs object to monitor the pendulum & motor position
+	// Create new EQEPs object to monitor the pendulum position
 	threadedEQEP *pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, ENCODER_PPR);
-	threadedEQEP *motorEQEP = new threadedEQEP(MOTOR_EQEP, MOTOR_PPR);
-
 
 	// Start the thread running
 	pendulumEQEP->run();
@@ -65,7 +63,6 @@ int main(int argc, char const *argv[]) {
 
 	// Don't quit until all threads are finished
 	WAIT_THREAD_FINISH(Controller);
-	WAIT_THREAD_FINISH(motorEQEP);
 	WAIT_THREAD_FINISH(pendulumEQEP);
 
 	cout << "Done!" << endl;
