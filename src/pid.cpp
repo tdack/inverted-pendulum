@@ -1,9 +1,9 @@
 /**
- *! @file pid.cpp
- *! Threaded PID controller
- *!
- *! @author troy
- *! @date Copyright (C) 2015
+ * @file
+ * @brief Threaded PID controller
+ *
+ * @author troy
+ * @date Copyright (C) 2015
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

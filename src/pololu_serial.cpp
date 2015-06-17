@@ -1,9 +1,9 @@
 /**
- *! @file pololu_serial.cpp
- *! Pololu Simple Motor Controller (SMC)
- *!
- *! @author Troy Dack
- *! @date Copyright (C) 2015
+ * @file
+ * @brief Pololu Simple Motor Controller (SMC)
+ *
+ * @author Troy Dack
+ * @date Copyright (C) 2015
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

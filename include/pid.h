@@ -1,9 +1,8 @@
 /**
- *! @file pid.h
- *! Threaded PID controller header file
- *!
- *! @author troy
- *! @date Copyright (C) 2015
+ * @file
+  *
+ * @author troy
+ * @date Copyright (C) 2015
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
