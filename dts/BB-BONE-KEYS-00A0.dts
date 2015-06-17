@@ -1,3 +1,26 @@
+/**
+ * @file BB-BONE-KEYS-00A0.dts
+ * @brief Device Tree Overlay to configure GPIOs as /dev/event inputs
+ *
+ * @author Troy Dack
+ * @date Copyright (C) 2015
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ **/
+
 /dts-v1/;
 /plugin/;
 
@@ -13,7 +36,7 @@
 		__overlay__ {
 			pushbutton_pins: pinmux_pushbutton_pins {
 				pinctrl-single,pins = <
-					0x078 0x37 // P9_12 pull-up mode 7 GPIO1_28
+					0x04c 0x37 // P9_16 pull-up mode 7 GPIO1_28
 					0x040 0x37 // P9_15 pull-up mode 7 GPIO1_16
 					0x044 0x37 // P9_23 pull-up mode 7 GPIO1_17
 				>;
@@ -39,7 +62,7 @@
 					debounce_interval = <50>;
 					linux,code = <28>;
 					label = "enter";
-					gpios = <&gpio2 60 0x1>;
+					gpios = <&gpio2 19 0x1>;
 					gpio-key,wakeup;
 					autorepeat;
 				};
