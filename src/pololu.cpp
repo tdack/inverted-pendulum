@@ -1,9 +1,12 @@
 /**
- *! @file pololu.cpp
- *! Inverted Pendulum
- *!
- *! @author Troy Dack
- *! @date Copyright (C) 2015
+ * @file
+ * Inverted Pendulum
+ *
+ * Main function to initialise and control inverted pendulum connected
+ * hardware.
+ *
+ * @author Troy Dack
+ * @date Copyright (C) 2015
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,9 +38,9 @@ using namespace std;
 
 int main(int argc, char const *argv[]) {
 
-	int fd, count=0;
+	int fd, count = 0;
 	struct input_event event[64];
-	if(getuid()!=0) {
+	if (getuid() != 0) {
 		cout << "You must run this program as root. Exiting." << endl;
 		return -1;
 	}
@@ -46,28 +49,28 @@ int main(int argc, char const *argv[]) {
 		perror("Failed to open event1 input device. Exiting.");
 		return -1;
 	}
-
-	while(count < 20) {  // Press and Release are one loop each
-		int numbytes = (int)read(fd, event, sizeof(event));
-		int numevents = numbytes/sizeof(struct input_event);
-		if (numbytes < (int)sizeof(struct input_event)) {
+	while (count < 20) {  // Press and Release are one loop each
+		int numbytes = (int) read(fd, event, sizeof(event));
+		if (numbytes < (int) sizeof(struct input_event)) {
 			perror("The input read was invalid. Exiting.");
 			return -1;
 		}
-		if (numevents > 0) {
-			int type = event[0].type;
-			int val  = event[0].value;
-			int code = event[0].code;
+		for (int i = 0; i < numbytes / sizeof(struct input_event); i++) {
+			int type = event[i].type;
+			int val = event[i].value;
+			int code = event[i].code;
 			if (type == EV_KEY) {
 				if (val == KEY_PRESS) {
-					cout << "Press  : Code "<< code <<" Value "<< val<< endl;
+					cout << "Press  : Code " << code << " Value " << val
+							<< endl;
 				}
 				if (val == KEY_RELEASE) {
-					cout << "Release: Code "<< code <<" Value "<< val<< endl;
+					cout << "Release: Code " << code << " Value " << val
+							<< endl;
 				}
 			}
-	      count++;
-	   }
+		}
+		count++;
 	}
 	close(fd);
 
