@@ -73,7 +73,7 @@ namespace Pololu {
 		return SERIAL_ERROR;
 	  }
 
-	  return response[0] + 256*response[1];
+	  return response[0] + 256 * response[1];
 	}
 
 	int SMC::GetTargetSpeed()
@@ -111,6 +111,13 @@ namespace Pololu {
 
 	int SMC::SetTargetSpeed(int speed)
 	{
+	  static bool in_use = false;
+	  if (in_use) {
+		  return 0;
+	  } else {
+		  in_use = true;
+	  }
+
 	  unsigned char command[3];
 
 	  if (speed < 0)
@@ -128,10 +135,13 @@ namespace Pololu {
 	  if (write(SMCfd, command, sizeof(command)) == -1)
 	  {
 		perror("error writing");
+		in_use = false;
 		return SERIAL_ERROR;
 	  }
+	  in_use = false;
 	  return 0;
 	}
+
 	int SMC::SetTargetSpeed(float speed) {
 		return SetTargetSpeed( (int)(SMC_MAX_SPEED * speed/100) );
 	}
