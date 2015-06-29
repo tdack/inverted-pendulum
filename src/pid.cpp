@@ -70,7 +70,8 @@ void pid::onStartHandler() {
 			motor_speed= -100;
 		}
 		SMC->SetTargetSpeed(motor_speed);
-		std::cout << "p: " << err_p << " \ti: " << err_i << " \td:" << err_d << " \tu:" << u << " \tmotor_speed:" << motor_speed << std::endl;
+		//std::cout << "\rp: " << err_p << " \ti: " << err_i << " \td:" << err_d << " \tu:" << u << " \tmotor_speed:" << motor_speed << std::endl;
+		usleep(20); // Sleep a bit, give motor time to respond to changes
 	}
 	SMC->SetTargetSpeed(0);
 }
