@@ -19,7 +19,7 @@ The `dts` directory includes device tree overlays for the eQEP modules to enable
 direct memory map use of them using the bbb-eqep class.
 
 The PyBBIO-epwmss and PyBBIO-eqep device tree overlays installed by default in 
-`lib/firmware/` are equivalent and do not require the device tree compiler.
+`/lib/firmware/` are equivalent and do not require the device tree compiler.
 
 Access to eqep1 requires disabling of the HDMI interface.  See [uEnv.txt](uEnv.txt)
 for an example of disabling the HDMI interface.
