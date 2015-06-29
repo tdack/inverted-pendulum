@@ -28,6 +28,7 @@
 #include <cstdio>
 #include <stdexcept>
 #include <string>
+#include <iostream>
 
 namespace Pololu {
 
@@ -35,20 +36,20 @@ namespace Pololu {
 		struct termios options;
 
 		SMCfd = open(tty, O_RDWR | O_NOCTTY | O_NDELAY);
+		ttyActive = false;
 		if (SMC::SMCfd == -1) {
 			throw std::runtime_error("Unable to open " + std::string(tty));
 		} else {
 			fcntl(SMCfd, F_SETFL, FNDELAY);
 			tcgetattr(SMCfd, &options);
-			cfsetispeed(&options, B115200);
-			cfsetospeed(&options, B115200);
+			cfsetispeed(&options, B19200);
+			cfsetospeed(&options, B19200);
 			options.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
 			options.c_oflag &= ~(ONLCR | OCRNL);
 			tcsetattr(SMCfd, TCSANOW, &options);
-			// Initialise comms with motor controller
-			AutoDetectBaudRate();
-			// Exit USB safe start
-			ExitSafeStart();
+			AutoDetectBaudRate(); // Initialise comms with motor controller
+			ExitSafeStart(); // Exit USB safe start
+			SetTargetSpeed(0); // Set speed to 0 initially just to be safe.
 			return;
 		}
 	}
@@ -57,23 +58,43 @@ namespace Pololu {
 		close(SMCfd);
 	}
 
+	int SMC::serial_write(const unsigned char *buffer, int len) {
+		if (ttyActive.load()) {
+			std::cout << "tty busy" << std::endl;
+			return -1;
+		}
+		int bytes_written = 0;
+		bytes_written = write(SMCfd, buffer, len);
+		if (bytes_written == -1) {
+			perror("Couldn't write data");
+		}
+		ttyActive.store(false);
+		return bytes_written;
+	}
+
+	int SMC::serial_read() {
+		unsigned char response[2];
+		if (ttyActive.load()) {
+			return -1;
+		} else {
+			ttyActive.store(true);
+		}
+
+		if(read(SMCfd,response,2) != 2)
+		{
+			perror("smcGetVariable: error reading");
+			ttyActive.store(false);
+			return SERIAL_ERROR;
+		}
+		ttyActive.store(false);
+		return response[0] + 256 * response[1];
+	}
+
 	int SMC::GetVariable(unsigned char variableId)
 	{
 	  unsigned char command[] = {0xA1, variableId};
-	  if(write(SMCfd, &command, sizeof(command)) == -1)
-	  {
-	    perror("smcGetVariable: error writing");
-		return SERIAL_ERROR;
-	  }
-
-	  unsigned char response[2];
-	  if(read(SMCfd,response,2) != 2)
-	  {
-	    perror("smcGetVariable: error reading");
-		return SERIAL_ERROR;
-	  }
-
-	  return response[0] + 256 * response[1];
+	  serial_write(command, sizeof(command));
+	  return serial_read();
 	}
 
 	int SMC::GetTargetSpeed()
@@ -89,34 +110,20 @@ namespace Pololu {
 
 	int SMC::AutoDetectBaudRate()
 	{
-	  const unsigned char command = 0xAA;
-	  if (write(SMCfd, &command, 1) == -1)
-	  {
-		perror("SMC::AutoDetectBaudRate: error writing");
-		return SERIAL_ERROR;
-	  }
+	  unsigned char command[] = {0xAA}; // Autodetect baud rate command
+	  serial_write(command, sizeof command);
 	  return 0;
 	}
 
 	int SMC::ExitSafeStart()
 	{
-	  const unsigned char command = 0x83;
-	  if (write(SMCfd, &command, 1) == -1)
-	  {
-		perror("SMC::ExitSafeStart: error writing");
-		return SERIAL_ERROR;
-	  }
+	  unsigned char command[] = {0x83}; // Exit safe start command
+	  serial_write(command, sizeof command);
 	  return 0;
 	}
 
 	int SMC::SetTargetSpeed(int speed)
 	{
-	  static bool in_use = false;
-	  if (in_use) {
-		  return 0;
-	  } else {
-		  in_use = true;
-	  }
 
 	  unsigned char command[3];
 
@@ -132,13 +139,8 @@ namespace Pololu {
 	  command[1] = speed & 0x1F;
 	  command[2] = speed >> 5 & 0x7F;
 
-	  if (write(SMCfd, command, sizeof(command)) == -1)
-	  {
-		perror("error writing");
-		in_use = false;
-		return SERIAL_ERROR;
-	  }
-	  in_use = false;
+	  serial_write(command, sizeof command);
+
 	  return 0;
 	}
 
