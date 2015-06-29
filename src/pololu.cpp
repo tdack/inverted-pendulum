@@ -24,6 +24,7 @@
 #include <BlackLib/BlackThread/BlackThread.h>
 #include <pid.h>
 #include <pololu.h>
+#include <rlutil.h>
 #include <threadedEQEP.h>
 #include <unistd.h>
 #include <cmath>
@@ -31,25 +32,31 @@
 
 using namespace std;
 
-int main(int argc, char const *argv[]) {
+
+void controller(int argc, char const *argv[]) {
 
 	// Create new EQEPs object to monitor the pendulum position
 	threadedEQEP *pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, ENCODER_PPR);
 
 	// Start the thread running
 	pendulumEQEP->run();
-
+	rlutil::cls();
+	rlutil::setColor(rlutil::BLUE);
 	cout << "Raise the pendulum" << endl;
+	rlutil::setColor(rlutil::WHITE);
 
-	// Wait until the pendulum is @ 180 +-2 deg
+	// Wait until the pendulum is @ 180 +-1 deg
 	// Assumes pendulum starts hanging vertically down
-	while (abs(pendulumEQEP->getAngleDeg()) < 178 || abs(pendulumEQEP->getAngleDeg() > 182))  {
+	while (abs(pendulumEQEP->getAngleDeg()) < 179 || abs(pendulumEQEP->getAngleDeg() > 181))  {
 		cout << "\r    " << pendulumEQEP->getAngleDeg();
 		usleep(20);
 	}
-
-	cout << "\n\n Vertical! \n Starting!" << endl;
 	pendulumEQEP->stop();
+
+	rlutil::cls();
+	rlutil::setColor(rlutil::GREEN);
+	cout << "\n\n Vertical! \n Starting!" << endl;
+	rlutil::setColor(rlutil::WHITE);
 
 	// Create a new PID controller thread
 	pid *Controller = new pid(11.7, 50, 8, 40);
@@ -66,5 +73,27 @@ int main(int argc, char const *argv[]) {
 	WAIT_THREAD_FINISH(pendulumEQEP);
 
 	cout << "Done!" << endl;
+	return;
+}
+
+int main(int argc, char const *argv[]) {
+
+	controller(argc, argv);
+	return 0;
+
+	// Create a Simple Motor Controller object
+	Pololu::SMC *SMC = new Pololu::SMC(POLOLU_TTY);
+
+	SMC->SetTargetSpeed(0);
+
+	usleep(500);
+	SMC->SetTargetSpeed(256);
+
+	sleep(3);
+	SMC->SetTargetSpeed(-256);
+
+	sleep(3);
+	SMC->SetTargetSpeed(0);
+
 	return 0;
 }
