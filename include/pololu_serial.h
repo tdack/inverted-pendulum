@@ -24,19 +24,35 @@
 #ifndef INCLUDE_POLOLU_SERIAL_H_
 #define INCLUDE_POLOLU_SERIAL_H_
 
+#include <atomic>
+
 namespace Pololu {
 
-const unsigned int SERIAL_ERROR = -9999;
+//const unsigned int SERIAL_ERROR = -9999;
 
-const unsigned int SMC_SAFE_START_VIOLATION = (1 << 0);
-const unsigned int SMC_SERIAL_ERROR		 	= (1 << 1);
-const unsigned int SMC_COMMAND_TIMEOUT		= (1 << 2);
-const unsigned int SMC_LIMIT_SWITCH		 	= (1 << 3);
-const unsigned int SMC_LOW_VIN				= (1 << 5);
-const unsigned int SMC_HIGH_VIN			 	= (1 << 6);
-const unsigned int SMC_OVER_TEMP			= (1 << 7);
-const unsigned int SMC_MOTOR_DRIVER_ERROR	= (1 << 8);
-const unsigned int SMC_ERR_LINE_HIGH		= (1 << 9);
+/**
+ * Errors stopping the motor
+ */
+const unsigned int SAFE_START_VIOLATION = (1 << 0);
+const unsigned int CHANNEL_INVALID		= (1 << 1);
+const unsigned int SERIAL_ERROR		 	= (1 << 2);
+const unsigned int COMMAND_TIMEOUT		= (1 << 3);
+const unsigned int LIMIT_SWITCH		 	= (1 << 4);
+const unsigned int LOW_VIN				= (1 << 5);
+const unsigned int HIGH_VIN			 	= (1 << 6);
+const unsigned int OVER_TEMP			= (1 << 7);
+const unsigned int MOTOR_DRIVER_ERROR	= (1 << 8);
+const unsigned int ERR_LINE_HIGH		= (1 << 9);
+
+/**
+ * Serial Errors
+ */
+const unsigned int ERR_FRAME		= (1 << 1);
+const unsigned int ERR_NOISE		= (1 << 2);
+const unsigned int ERR_RX_OVER		= (1 << 3);
+const unsigned int ERR_FORMAT		= (1 << 4);
+const unsigned int ERR_CRC			= (1 << 5);
+
 const int SMC_MAX_SPEED			= 3200; // Max speed controller will accept
 const int SMC_MIN_SPEED			= 128;  // Min speed to move motor
 
@@ -52,6 +68,9 @@ class SMC {
 
 private:
 	int SMCfd; /**< File descriptor to the serial port */
+	int serial_write(const unsigned char *buffer, int len);
+	int serial_read();
+	std::atomic<bool> ttyActive;
 
 public:
 	/**
