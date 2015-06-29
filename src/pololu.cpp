@@ -29,11 +29,12 @@
 #include <unistd.h>
 #include <cmath>
 #include <iostream>  // Input-Output streams
+#include <sys/stat.h>
 
 using namespace std;
 
 
-void controller(int argc, char const *argv[]) {
+void controller() {
 
 	// Create new EQEPs object to monitor the pendulum position
 	threadedEQEP *pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, ENCODER_PPR);
@@ -55,7 +56,7 @@ void controller(int argc, char const *argv[]) {
 
 	rlutil::cls();
 	rlutil::setColor(rlutil::GREEN);
-	cout << "\n\n Vertical! \n Starting!" << endl;
+	cout << "\n\n Vertical! .. \n Starting!" << endl;
 	rlutil::setColor(rlutil::WHITE);
 
 	// Create a new PID controller thread
@@ -76,11 +77,28 @@ void controller(int argc, char const *argv[]) {
 	return;
 }
 
+bool checkOverlays(){
+	std::vector<std::string> files = {
+			POLOLU_TTY,								   // tty device path
+			"/sys/bus/platform/devices/48300180.eqep", // eqep device path
+			"/sys/bus/platform/devices/48302180.eqep"  // eqep device path
+	};
+
+	struct stat buffer;
+	for (std::string& file : files) {
+		if (stat(file.c_str(), &buffer) != 0) {
+			cout << file << " not found.  Are the overlays loaded?" << std::endl;
+			return false;
+		}
+	}
+	return true;
+}
+
 int main(int argc, char const *argv[]) {
 
-	controller(argc, argv);
-	return 0;
-
+	if (!checkOverlays()) {
+		return -1;
+	}
 	// Create a Simple Motor Controller object
 	Pololu::SMC *SMC = new Pololu::SMC(POLOLU_TTY);
 
@@ -94,6 +112,8 @@ int main(int argc, char const *argv[]) {
 
 	sleep(3);
 	SMC->SetTargetSpeed(0);
+
+	controller();
 
 	return 0;
 }
