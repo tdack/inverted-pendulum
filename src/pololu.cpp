@@ -83,20 +83,28 @@ bool checkOverlays(){
 			"/sys/bus/platform/devices/48300180.eqep", // eqep device path
 			"/sys/bus/platform/devices/48302180.eqep"  // eqep device path
 	};
-
 	struct stat buffer;
+	bool overlays_loaded = true;
+
+	rlutil::cls();
+	rlutil::setColor(rlutil::RED);
 	for (std::string& file : files) {
 		if (stat(file.c_str(), &buffer) != 0) {
-			cout << file << " not found.  Are the overlays loaded?" << std::endl;
-			return false;
+			rlutil::setColor(rlutil::YELLOW);
+			cout << file << " ";
+			rlutil::setColor(rlutil::RED);
+			cout << "not found." << endl;;
+			overlays_loaded = false;
 		}
 	}
-	return true;
+	return overlays_loaded;
 }
 
 int main(int argc, char const *argv[]) {
 
 	if (!checkOverlays()) {
+		rlutil::setColor(rlutil::WHITE);
+		cout << "Are the overlays loaded?" << std::endl;
 		return -1;
 	}
 	// Create a Simple Motor Controller object
