@@ -21,18 +21,23 @@
  *
  **/
 
+#include <BlackLib/BlackDef.h>
+#include <BlackLib/BlackGPIO/BlackGPIO.h>
 #include <BlackLib/BlackThread/BlackThread.h>
 #include <pid.h>
 #include <pololu.h>
+#include <pololu_serial.h>
 #include <rlutil.h>
+#include <sys/stat.h>
 #include <threadedEQEP.h>
 #include <unistd.h>
 #include <cmath>
-#include <iostream>  // Input-Output streams
-#include <sys/stat.h>
+#include <cstdbool>
+#include <iostream>
+#include <string>
+#include <vector>
 
 using namespace std;
-
 
 void controller() {
 
@@ -100,6 +105,7 @@ bool checkOverlays(){
 	return overlays_loaded;
 }
 
+
 int main(int argc, char const *argv[]) {
 
 	if (!checkOverlays()) {
@@ -107,6 +113,13 @@ int main(int argc, char const *argv[]) {
 		cout << "Are the overlays loaded?" << std::endl;
 		return -1;
 	}
+
+	BlackLib::BlackGPIO P8_7(BlackLib::GPIO_66, BlackLib::output);
+	BlackLib::BlackGPIO P8_8(BlackLib::GPIO_67, BlackLib::output);
+
+	P8_7 << BlackLib::high;
+	P8_8 << BlackLib::high;
+
 	// Create a Simple Motor Controller object
 	Pololu::SMC *SMC = new Pololu::SMC(POLOLU_TTY);
 
@@ -114,12 +127,19 @@ int main(int argc, char const *argv[]) {
 
 	usleep(500);
 	SMC->SetTargetSpeed(256);
+	P8_7 << BlackLib::low;
+	P8_8 << BlackLib::high;
 
 	sleep(3);
 	SMC->SetTargetSpeed(-256);
+	P8_7 << BlackLib::high;
+	P8_8 << BlackLib::low;
 
 	sleep(3);
 	SMC->SetTargetSpeed(0);
+
+	P8_7 << BlackLib::low;
+	P8_8 << BlackLib::low;
 
 	controller();
 
