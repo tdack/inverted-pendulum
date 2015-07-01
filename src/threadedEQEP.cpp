@@ -28,6 +28,8 @@
 #include <cstdbool>
 #include <iostream>
 #include <stdexcept>
+#include <chrono>
+#include <thread>
 
 /**
  * threadedEQEP threaded class. Reads eQEP position information continuously
@@ -62,33 +64,34 @@ threadedEQEP::threadedEQEP(int eqep_number, float encoder_ppr)
  * Runs continuously until bExit is set to True
  */
 void threadedEQEP::onStartHandler() {
-	struct timeval old_time, new_time;
+
 	int new_pos = 0;
 	int old_pos = 0;
 	float w = 0.0;
-	float dt = 0.0;
 	float v = 0.0;
 
-	gettimeofday(&new_time,NULL);
+	std::chrono::duration<float, std::deci> dt;
+	auto start = std::chrono::high_resolution_clock::now();
+	auto end = std::chrono::high_resolution_clock::now();
 	while (!this->bExit.load()) {
-		yield(); // let other processes run if needed
-		old_time = new_time;
+		//yield(); // let other processes run if needed
+		end = start;
 		old_pos = new_pos;
 		// Get new position
 		new_pos = eqep->getPosition();
-		gettimeofday(&new_time,NULL);
+		start = std::chrono::high_resolution_clock::now();
 		// Time between last read and this one in seconds
-		dt = ((new_time.tv_sec + new_time.tv_usec/1e6)-(old_time.tv_sec + old_time.tv_usec/1e6));
+		dt = start - end;
 		// Angle between last read and this read in radians
 		w = (new_pos - old_pos)/ppr * 2.0 * M_PI;
 		// Velocity for this period
-		v = w/dt; // velocity in radians/second
+		v = w/dt.count(); // velocity in radians/second
 		// Store new values
 		position.store(new_pos);
 		dt_position.store(new_pos - old_pos);
 		velocity.store(v);
 		// Need a small delay here to get velocity measurements
-		usleep(20);
+		std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	}
 	return;
 }
