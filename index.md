@@ -1,5 +1,6 @@
 ---
 title: Inverted Pendulum
+layout: default
 ---
 
 This is my 4th year Engineering Design project.
