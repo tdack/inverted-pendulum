@@ -1,3 +1,9 @@
+/**
+ * @brief RGB Driver Class
+ * @author Janick Bergeron
+ * @license
+ * \verbinclude "Janick Bergeron Apache-2.0.txt"
+ */
 //
 // Copyright (c) 2012 Janick Bergeron
 // All Rights Reserved
@@ -18,9 +24,9 @@
 //
 
 
-#include "rgb_driver.hpp"
+#include <SSD1306/rgb_driver.h>
 
-namespace BeagleBone {
+namespace SSD1306 {
 
 bool
 operator==(rgb_t l, rgb_t r)

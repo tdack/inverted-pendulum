@@ -1,33 +1,43 @@
-/***********************************
-This is a our graphics core library, for all our displays. 
-We'll be adapting all the
-existing libaries to use this core to make updating, support 
-and upgrading easier!
+/**
+ * @brief Adafruit graphics core library
+ *
+ * @changelog
+ * + J. Bergeron <janick@bergeron.com>
+ *	- Refactored driver into a Strategy Pattern
+ *	- Port to BoneLib
+ * + T. Dack <troy@dack.com.au> (Jul 2015)
+ *	- removed test code
+ *	- changed namespace to SSD1306
+ *	- integrated with BlackLib
+ *
+ * @author Limor Fried/Ladyada, Janick Bergeron, Troy Dack <troy@dack.com.au>
+ * @license
+ * \verbinclude "Adafruit BSD 3-Clause.txt"
+ *
+ * This is a our graphics core library, for all our displays.
+ * We'll be adapting all the existing libaries to use this core to make
+ * updating, support and upgrading easier!
+ *
+ * Adafruit invests time and resources providing this open source code,
+ * please support Adafruit and open-source hardware by purchasing
+ * products from Adafruit!
+ *
+ * Written by Limor Fried/Ladyada  for Adafruit Industries.
+ *
+ * BSD license, check license.txt for more information
+ * All text above, and the splash screen must be included in any redistribution
+**/
 
-Adafruit invests time and resources providing this open source code, 
-please support Adafruit and open-source hardware by purchasing 
-products from Adafruit!
+#ifndef INCLUDE_SSD1306_GFX_H
+#define INCLUDE_SSD1306_GFX_H
 
-Written by Limor Fried/Ladyada  for Adafruit Industries.  
-Subsequent modifications by J. Bergeron <janick@bergeron.com>
-  - Refactored driver into a Strategy Pattern
-  - RGB color
-  - Port to BoneLib
+#include <SSD1306/rgb_driver.h>
 
-BSD license, check license.txt for more information
-All text above must be included in any redistribution
-****************************************/
-
-#ifndef _BONELIB_GFX_H
-#define _BONELIB_GFX_H
-
-#include "rgb_driver.hpp"
-
-namespace BeagleBone {
+namespace SSD1306 {
 
 class gfx {
 public:
-  gfx(rgb_driver &driver);
+  gfx(SSD1306::rgb_driver &driver);
 
   /** Return the width of the display */
   uint16_t getWidth(void);

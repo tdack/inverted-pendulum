@@ -1,3 +1,9 @@
+/**
+ * @brief RGB Driver Class
+ * @author Janick Bergeron
+ * @license
+ * \verbinclude "Janick Bergeron Apache-2.0.txt"
+ */
 //
 // Copyright (c) 2012 Janick Bergeron
 // All Rights Reserved
@@ -23,7 +29,7 @@
 
 #include <stdint.h>
 
-namespace BeagleBone {
+namespace SSD1306 {
 
 typedef struct rgb_s {
   uint8_t red;
@@ -72,6 +78,6 @@ public:
   virtual rgb_t getPixel(int16_t x, int16_t y) = 0;
 };
 
-}
+} /* SSD1306 */
 
 #endif

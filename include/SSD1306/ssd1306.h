@@ -1,0 +1,101 @@
+/**
+ * @brief Driver for SSD1306 OLED display.
+ *
+ * @changelog
+ * + J. Bergeron <janick@bergeron.com>
+ *	- Refactored driver into a Strategy Pattern
+ *	- Port to BoneLib
+ * + Jul 2015 - T. Dack <troy@dack.com.au>
+ *	- removed test code
+ *	- changed namespace to SSD1306
+ *	- integrated with BlackLib
+ *
+ * @author Limor Fried/Ladyada, Janick Bergeron, Troy Dack <troy@dack.com.au>
+ * @license
+ * \verbinclude "Adafruit BSD 3-Clause.txt"
+ *
+ * This is a library for our Monochrome OLEDs based on SSD1306 drivers
+ *
+ * Pick one up today in the adafruit shop!
+ * ------> http://www.adafruit.com/category/63_98
+ *
+ * These displays use SPI to communicate, 4 or 5 pins are required to
+ * interface
+ *
+ * Adafruit invests time and resources providing this open source code,
+ * please support Adafruit and open-source hardware by purchasing
+ * products from Adafruit!
+ *
+ * Written by Limor Fried/Ladyada  for Adafruit Industries.
+ *
+ * BSD license, check license.txt for more information
+ * All text above, and the splash screen must be included in any redistribution
+ *********************************************************************
+**/
+
+#ifndef INCLUDE_SSD1306_SSD1306_H_
+#define INCLUDE_SSD1306_SSD1306_H_
+
+#include <SSD1306/rgb_driver.h>
+#include <BlackLib/BlackGPIO/BlackGPIO.h>
+#include <BlackLib/BlackI2C/BlackI2C.h>
+#include <BlackLib/BlackSPI/BlackSPI.h>
+#include <linux/stddef.h>
+#include <stdint.h>
+
+namespace SSD1306 {
+
+class SSD1306: public rgb_driver {
+
+public:
+	typedef enum {WIDTH = 128, HEIGHT = 64} size_t;
+
+	SSD1306(BlackLib::BlackSPI* _spi, BlackLib::BlackGPIO* cs, BlackLib::BlackGPIO* rst, unsigned char height = 32);
+	SSD1306(BlackLib::spiName spi, BlackLib::BlackGPIO* cs, BlackLib::BlackGPIO* rst, unsigned char height = 32);
+
+	SSD1306(BlackLib::BlackI2C *i2c, BlackLib::BlackGPIO *rst = NULL, unsigned char height = 32);
+	SSD1306(BlackLib::i2cName i2c, unsigned int slaveAddress, BlackLib::BlackGPIO* rst = NULL, unsigned char height = 32);
+
+	~SSD1306();
+
+	void begin();
+
+	void command(uint8_t c);
+//	void data(uint8_t c);
+
+	/** Reset the display */
+	virtual void reset(void);
+
+	/** Clear the display */
+	virtual void clear(void);
+
+	/** Refresh the display */
+	virtual void refresh(void);
+
+	/** Return the width of the display, in pixels */
+	virtual uint16_t get_width(void);
+
+	/** Return the height of the display, in pixels */
+	virtual uint16_t get_height(void);
+
+	/** Set a color pixel */
+	virtual void drawPixel(int16_t x, int16_t y, rgb_t color);
+
+	/* Get the color of a pixel */
+	virtual rgb_t getPixel(int16_t x, int16_t y);
+
+private:
+	BlackLib::BlackSPI* m_spi;
+	BlackLib::BlackI2C* m_i2c;
+	BlackLib::BlackGPIO* m_din;
+	BlackLib::BlackGPIO* m_sclk;
+	BlackLib::BlackGPIO* m_dc;
+	BlackLib::BlackGPIO* m_cs;
+	BlackLib::BlackGPIO* m_rst;
+	unsigned char m_height;
+
+}; /* end class SSD1306 */
+
+} /* SSD1306 */
+
+#endif /* INCLUDE_SSD1306_SSD1306_H_ */
