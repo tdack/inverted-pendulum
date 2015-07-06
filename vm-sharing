@@ -1,0 +1,4 @@
+#!/bin/bash
+sudo ifconfig eth1 192.168.7.1
+sudo iptables -A POSTROUTING -t nat -j MASQUERADE
+echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward > /dev/null
