@@ -19,6 +19,7 @@
 #include <pololu_serial.h>
 #include <rlutil.h>
 #include <sys/stat.h>
+#include <SSD1306/gfx.h>
 #include <SSD1306/rgb_driver.h>
 #include <SSD1306/ssd1306.h>
 #include <threadedEQEP.h>
@@ -36,9 +37,23 @@ void controller() {
 
 	// Create new EQEPs object to monitor the pendulum position
 	threadedEQEP *pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, ENCODER_PPR);
+	threadedEQEP *motorEQEP = new threadedEQEP(MOTOR_EQEP, MOTOR_PPR);
+
+	// Initialise display
+	BlackLib::BlackI2C *I2C_1 = new BlackLib::BlackI2C(BlackLib::I2C_1, 0x3c);
+	SSD1306::SSD1306 oled(I2C_1, NULL, 64);
+	oled.begin();
+	SSD1306::gfx fx(oled);
+
+	fx.clearScreen();
+	fx.setTextColor(SSD1306::RGB::black, SSD1306::RGB::white);
+	fx.setTextSize(1);
+	fx.setCursor(1,1);
+	fx.write("Raise the pendulum");
 
 	// Start the thread running
 	pendulumEQEP->run();
+
 	rlutil::cls();
 	rlutil::setColor(rlutil::BLUE);
 	cout << "Raise the pendulum" << endl;
@@ -47,29 +62,40 @@ void controller() {
 	// Wait until the pendulum is @ 180 +-1 deg
 	// Assumes pendulum starts hanging vertically down
 	while (abs(pendulumEQEP->getAngleDeg()) < 179 || abs(pendulumEQEP->getAngleDeg() > 181))  {
-		cout << "\r    " << pendulumEQEP->getAngleDeg();
+		fx.setCursor(1,10);
+		fx.write(to_string(pendulumEQEP->getAngleDeg()).c_str());
+		fx.refreshScreen();
 		usleep(20);
 	}
-	pendulumEQEP->stop();
-
-	rlutil::cls();
-	rlutil::setColor(rlutil::GREEN);
-	cout << "\n\n Vertical! .. \n Starting!" << endl;
-	rlutil::setColor(rlutil::WHITE);
 
 	// Create a new PID controller thread
-	pid *Controller = new pid(11.7, 50, 8, 40);
+	pid *Controller = new pid(11.7, 10, 8, 40, pendulumEQEP, motorEQEP);
 
 	Controller->run();
 
-	// Let the thread run for 30 seconds
-	sleep(30);
+	// Let the thread run for a bit
+	fx.setCursor(1,1);
+	fx.write("                   ");
+	int count = 0;
+	while (count < 50)  {
+		count++;
+		fx.setCursor(1,10);
+		fx.write(to_string(pendulumEQEP->getAngleDeg()).c_str());
+		fx.setCursor(1,20);
+		fx.write(to_string(motorEQEP->getAngleDeg()).c_str());
+		fx.setCursor(110,54);
+		fx.write(to_string(count).c_str());
+		fx.refreshScreen();
+	}
 
 	Controller->stop();
+	pendulumEQEP->stop();
+	motorEQEP->stop();
 
 	// Don't quit until all threads are finished
 	WAIT_THREAD_FINISH(Controller);
 	WAIT_THREAD_FINISH(pendulumEQEP);
+	WAIT_THREAD_FINISH(motorEQEP);
 
 	cout << "Done!" << endl;
 	return;
@@ -141,6 +167,9 @@ int main(int argc, char const *argv[]) {
 		return -1;
 	}
 
+	controller();
+	return 0;
+
 	BlackLib::BlackI2C *I2C_1 = new BlackLib::BlackI2C(BlackLib::I2C_1, 0x3c);
 	SSD1306::SSD1306 oled(I2C_1, NULL, 64);
 
@@ -154,6 +183,16 @@ int main(int argc, char const *argv[]) {
 	float dy = (Y * 1.0) / max;
 
 	oled.begin();
+
+	SSD1306::gfx fx(oled);
+
+	fx.clearScreen();
+	fx.setTextColor(SSD1306::RGB::black, SSD1306::RGB::white);
+	fx.setTextSize(2);
+
+	fx.setCursor(10,10);
+	fx.write("Hello World!");
+
 	sleep(2);
 	oled.clear();
 	for (x = 0, y = 0; x < X; x += dx, y += dy) {
@@ -194,6 +233,8 @@ int main(int argc, char const *argv[]) {
 	}
 	sleep(1);
 
+	oled.clear();
+	oled.refresh();
 	oled.reset();
 
 	return 0;
