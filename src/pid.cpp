@@ -16,11 +16,8 @@
 #include <iostream>
 #include <atomic>
 
-pid::pid(float motor_voltage, float k_p, float k_i, float k_d) {
-	this->motor_voltage = motor_voltage;
-	this->k_p = k_p;
-	this->k_i = k_i;
-	this->k_d = k_d;
+pid::pid(float _motor_voltage, float _k_p, float _k_i, float _k_d)
+: motor_voltage(_motor_voltage), k_p(_k_p), k_i(_k_i), k_d(_k_d) {
 	err_p = 0.0; // proportional error
 	err_i = 0.0; // integral error
 	err_d = 0.0; // derivative error
@@ -29,6 +26,18 @@ pid::pid(float motor_voltage, float k_p, float k_i, float k_d) {
 	motorEQEP = new threadedEQEP(MOTOR_EQEP, MOTOR_PPR);
 	bExit.store(false);
 }
+
+pid::pid(float _motor_voltage, float _k_p, float _k_i, float _k_d, threadedEQEP *_pendulumEQEP, threadedEQEP *_motorEQEP)
+: motor_voltage(_motor_voltage), k_p(_k_p), k_i(_k_i), k_d(_k_d),
+  pendulumEQEP(_pendulumEQEP),
+  motorEQEP(_motorEQEP) {
+	err_p = 0.0; // proportional error
+	err_i = 0.0; // integral error
+	err_d = 0.0; // derivative error
+	motor_speed = 0.0;
+	bExit.store(false);
+}
+
 
 void pid::onStartHandler() {
 

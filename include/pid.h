@@ -57,6 +57,8 @@ public:
 	 */
 	pid(float motor_voltage, float k_p, float k_i, float k_d);
 
+	pid(float _motor_voltage, float _k_p, float _k_i, float _k_d, threadedEQEP *_pendulumEQEP, threadedEQEP *_motorEQEP);
+
 	void onStartHandler();
 
 	void stop();
