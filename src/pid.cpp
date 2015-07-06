@@ -1,23 +1,12 @@
 /**
- *! @file pid.cpp
- *! Threaded PID controller
- *!
- *! @author troy
- *! @date Copyright (C) 2015
+ * @file pid.cpp
+ * @brief Threaded PID controller
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * @author Troy Dack
+ * @date Copyright (C) 2015
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * @license
+ * \verbinclude "Troy Dack GPL-2.0.txt"
  *
  **/
 
@@ -25,6 +14,7 @@
 #include <pololu.h>
 #include <cstdbool>
 #include <iostream>
+#include <atomic>
 
 pid::pid(float motor_voltage, float k_p, float k_i, float k_d) {
 	this->motor_voltage = motor_voltage;
@@ -70,7 +60,7 @@ void pid::onStartHandler() {
 			motor_speed= -100;
 		}
 		SMC->SetTargetSpeed(motor_speed);
-		//std::cout << "\rp: " << err_p << " \ti: " << err_i << " \td:" << err_d << " \tu:" << u << " \tmotor_speed:" << motor_speed << std::endl;
+//		std::cout << "\rp: " << err_p << " \ti: " << err_i << " \td:" << err_d << " \tu:" << u << " \tmotor_speed:" << motor_speed << std::endl;
 		usleep(20); // Sleep a bit, give motor time to respond to changes
 	}
 	SMC->SetTargetSpeed(0);
