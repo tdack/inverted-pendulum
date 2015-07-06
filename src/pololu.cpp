@@ -1,38 +1,31 @@
 /**
- *! @file pololu.cpp
- *! Inverted Pendulum
- *!
- *! @author Troy Dack
- *! @date Copyright (C) 2015
+ * @file pololu.cpp
+ * @brief Inverted Pendulum main file
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * @author Troy Dack
+ * @date Copyright (C) 2015
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * @license
+ * \verbinclude "Troy Dack GPL-2.0.txt"
  *
  **/
 
 #include <BlackLib/BlackDef.h>
 #include <BlackLib/BlackGPIO/BlackGPIO.h>
+#include <BlackLib/BlackI2C/BlackI2C.h>
 #include <BlackLib/BlackThread/BlackThread.h>
 #include <pid.h>
 #include <pololu.h>
 #include <pololu_serial.h>
 #include <rlutil.h>
 #include <sys/stat.h>
+#include <SSD1306/rgb_driver.h>
+#include <SSD1306/ssd1306.h>
 #include <threadedEQEP.h>
 #include <unistd.h>
 #include <cmath>
 #include <cstdbool>
+#include <iomanip>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -105,15 +98,7 @@ bool checkOverlays(){
 	return overlays_loaded;
 }
 
-
-int main(int argc, char const *argv[]) {
-
-	if (!checkOverlays()) {
-		rlutil::setColor(rlutil::WHITE);
-		cout << "Are the overlays loaded?" << std::endl;
-		return -1;
-	}
-
+void motorTest() {
 	BlackLib::BlackGPIO P8_7(BlackLib::GPIO_66, BlackLib::output);
 	BlackLib::BlackGPIO P8_8(BlackLib::GPIO_67, BlackLib::output);
 
@@ -124,6 +109,9 @@ int main(int argc, char const *argv[]) {
 	Pololu::SMC *SMC = new Pololu::SMC(POLOLU_TTY);
 
 	SMC->SetTargetSpeed(0);
+
+	cout.setf(std::ios::fixed);
+	cout << "Voltage: " << std::setprecision(2) << SMC->GetVariable(23)/1e3 << endl;
 
 	usleep(500);
 	SMC->SetTargetSpeed(256);
@@ -141,7 +129,72 @@ int main(int argc, char const *argv[]) {
 	P8_7 << BlackLib::low;
 	P8_8 << BlackLib::low;
 
-	controller();
+	delete SMC;
+	return;
+}
+
+int main(int argc, char const *argv[]) {
+
+	if (!checkOverlays()) {
+		rlutil::setColor(rlutil::WHITE);
+		cout << "Are the overlays loaded?" << std::endl;
+		return -1;
+	}
+
+	BlackLib::BlackI2C *I2C_1 = new BlackLib::BlackI2C(BlackLib::I2C_1, 0x3c);
+	SSD1306::SSD1306 oled(I2C_1, NULL, 64);
+
+	int X = oled.get_width();
+	int Y = oled.get_height();
+
+	int max = (X > Y) ? X : Y;
+
+	float x, y;
+	float dx = (X * 1.0) / max;
+	float dy = (Y * 1.0) / max;
+
+	oled.begin();
+	sleep(2);
+	oled.clear();
+	for (x = 0, y = 0; x < X; x += dx, y += dy) {
+		oled.drawPixel((int) x, (int) y, SSD1306::RGB::black);
+		oled.drawPixel((int) (oled.get_width() - x), (int) y,
+				SSD1306::RGB::black);
+	}
+	oled.refresh();
+
+	sleep(2);
+
+	// Flash a medium square in the middle
+	SSD1306::rgb_t color;
+
+	X = oled.get_width() / 2 - 10;
+	Y = oled.get_height() / 2 - 10;
+	for (int i = 0; i < 51; i++) {
+		color = (i % 2) ? SSD1306::RGB::white : SSD1306::RGB::black;
+		for (x = 0; x < 20; x++) {
+			for (y = 0; y < 20; y++) {
+				oled.drawPixel(X + x, Y + y, color);
+			}
+		}
+		oled.refresh();
+	}
+
+	// Flash a smaller square in the middle
+	X = oled.get_width() / 2 - 4;
+	Y = oled.get_height() / 2 - 4;
+	for (int i = 0; i < 20; i++) {
+		color = (i % 2) ? SSD1306::RGB::white : SSD1306::RGB::black;
+		for (x = 0; x < 8; x++) {
+			for (y = 0; y < 8; y++) {
+				oled.drawPixel(X + x, Y + y, color);
+			}
+		}
+		oled.refresh();
+	}
+	sleep(1);
+
+	oled.reset();
 
 	return 0;
 }
