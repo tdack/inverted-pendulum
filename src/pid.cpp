@@ -10,8 +10,8 @@
  *
  **/
 
+#include <pendulum.h>
 #include <pid.h>
-#include <pololu.h>
 #include <cstdbool>
 #include <iostream>
 #include <atomic>

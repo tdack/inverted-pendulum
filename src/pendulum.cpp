@@ -1,5 +1,5 @@
 /**
- * @file pololu.cpp
+ * @file
  * @brief Inverted Pendulum main file
  *
  * @author Troy Dack
@@ -14,8 +14,8 @@
 #include <BlackLib/BlackGPIO/BlackGPIO.h>
 #include <BlackLib/BlackI2C/BlackI2C.h>
 #include <BlackLib/BlackThread/BlackThread.h>
+#include <pendulum.h>
 #include <pid.h>
-#include <pololu.h>
 #include <pololu_serial.h>
 #include <rlutil.h>
 #include <sys/stat.h>
