@@ -13,9 +13,10 @@ position encoders.
 Reading the position encoders using x4 quadrature encoding gives more pulses
 per revolution and increases the angular resolution of each encoder.
 
-Encoder | ppr | x4 ppr | deg/pulse
-Pendulum Encoder | 600 | 2400 | 0.15°
-Motor Encoder | 400 | 1600 | 0.23°
+|Encoder | ppr | x4 ppr | deg/pulse|
+|:-------|----:|-------:|---------:|
+|Pendulum Encoder | 600 | 2400 | 0.15°|
+|Motor Encoder | 400 | 1600 | 0.23°|
 
 Code is available at http://github.com/tdack/inverted-pendulum
 Schematics, drawings and CAD files will be available once the project is complete
