@@ -50,39 +50,76 @@ class SSD1306: public rgb_driver {
 public:
 	typedef enum {WIDTH = 128, HEIGHT = 64} size_t;
 
-	SSD1306(BlackLib::BlackSPI* _spi, BlackLib::BlackGPIO* cs, BlackLib::BlackGPIO* rst, unsigned char height = 32);
-	SSD1306(BlackLib::spiName spi, BlackLib::BlackGPIO* cs, BlackLib::BlackGPIO* rst, unsigned char height = 32);
+	SSD1306(BlackLib::BlackSPI* _spi, BlackLib::BlackGPIO* cs, BlackLib::BlackGPIO* rst, uint8_t height = 32);
+	SSD1306(BlackLib::spiName spi, BlackLib::BlackGPIO* cs, BlackLib::BlackGPIO* rst, uint8_t height = 32);
 
-	SSD1306(BlackLib::BlackI2C *i2c, BlackLib::BlackGPIO *rst = NULL, unsigned char height = 32);
-	SSD1306(BlackLib::i2cName i2c, unsigned int slaveAddress, BlackLib::BlackGPIO* rst = NULL, unsigned char height = 32);
+	SSD1306(BlackLib::BlackI2C *i2c, BlackLib::BlackGPIO *rst = NULL, uint8_t height = 32);
+	SSD1306(BlackLib::i2cName i2c, uint8_t slaveAddress, BlackLib::BlackGPIO* rst = NULL, uint8_t height = 32);
 
 	~SSD1306();
 
+	/**
+	 * @brief Initialise the display
+	 * Initialises the display and  sets defaults
+	 */
 	void begin();
 
+	/**
+	 * Sends a single byte in command mode to the display
+	 * @param c data to send
+	 */
 	void command(uint8_t c);
-//	void data(uint8_t c);
 
-	/** Reset the display */
+	void data(uint8_t* buffer, size_t bufferSize);
+
+	/**
+	 * @brief Reset the display
+	**/
 	virtual void reset(void);
 
-	/** Clear the display */
+	/**
+	 * @brief Clear the display
+	**/
 	virtual void clear(void);
 
-	/** Refresh the display */
+	/**
+	 * @brief Refresh the display
+	**/
 	virtual void refresh(void);
 
-	/** Return the width of the display, in pixels */
+	/**
+	 * @brief Return the width of the display
+	 * @return width of the display in pixels
+	 */
 	virtual uint16_t get_width(void);
 
-	/** Return the height of the display, in pixels */
+	/**
+	 * @brief Return the height of the display
+	 * @return height of the display in pixels
+	 */
 	virtual uint16_t get_height(void);
 
 	/** Set a color pixel */
+	/**
+	 * @brief Get the color of a pixel
+	 * @param x x-coordinate of pixel
+	 * @param y y-coordinate of pixel
+	 * @param color color to set pixel
+	 */
 	virtual void drawPixel(int16_t x, int16_t y, rgb_t color);
 
-	/* Get the color of a pixel */
+	/**
+	 * @brief Get the color of a pixel
+	 * @param x x-coordinate of pixel
+	 * @param y y-coordinate of pixel
+	 */
 	virtual rgb_t getPixel(int16_t x, int16_t y);
+
+	/**
+	 * @brief Sets the contrast of the display
+	 * @param contrast value between 0 and 255
+	 */
+	void setContrast(uint8_t contrast);
 
 private:
 	BlackLib::BlackSPI* m_spi;
@@ -92,7 +129,7 @@ private:
 	BlackLib::BlackGPIO* m_dc;
 	BlackLib::BlackGPIO* m_cs;
 	BlackLib::BlackGPIO* m_rst;
-	unsigned char m_height;
+	uint8_t m_height;
 
 }; /* end class SSD1306 */
 

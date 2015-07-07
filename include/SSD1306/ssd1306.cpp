@@ -42,48 +42,50 @@
 
 namespace SSD1306 {
 
-const unsigned int SSD1306_COMMAND_MODE = 0x00; /* C0 and DC bit are 0         */
-const unsigned int SSD1306_DATA_MODE = 0x40; /* C0 bit is 0 and DC bit is 1 */
+const uint8_t SSD1306_COMMAND_MODE 			= 0x00; /* C0 and DC bit are 0         */
+const uint8_t SSD1306_DATA_MODE 			= 0x40; /* C0 bit is 0 and DC bit is 1 */
 
-const unsigned int SSD1306_SETCONTRAST = 0x81;
-const unsigned int SSD1306_DISPLAYALLON_RESUME = 0xA4;
-const unsigned int SSD1306_DISPLAYALLON = 0xA5;
-const unsigned int SSD1306_NORMALDISPLAY = 0xA6;
-const unsigned int SSD1306_INVERTDISPLAY = 0xA7;
-const unsigned int SSD1306_DISPLAYOFF = 0xAE;
-const unsigned int SSD1306_DISPLAYON = 0xAF;
+const uint8_t SSD1306_SETCONTRAST 			= 0x81;
+const uint8_t SSD1306_DISPLAYALLON_RESUME 	= 0xA4;
+const uint8_t SSD1306_DISPLAYALLON 			= 0xA5;
+const uint8_t SSD1306_NORMALDISPLAY 		= 0xA6;
+const uint8_t SSD1306_INVERTDISPLAY 		= 0xA7;
+const uint8_t SSD1306_DISPLAYOFF 			= 0xAE;
+const uint8_t SSD1306_DISPLAYON 			= 0xAF;
 
-const unsigned int SSD1306_SETDISPLAYOFFSET = 0xD3;
-const unsigned int SSD1306_SETCOMPINS = 0xDA;
+const uint8_t SSD1306_SETDISPLAYOFFSET 		= 0xD3;
+const uint8_t SSD1306_SETCOMPINS 			= 0xDA;
 
-const unsigned int SSD1306_SETVCOMDETECT = 0xDB;
+const uint8_t SSD1306_SETVCOMDETECT 		= 0xDB;
 
-const unsigned int SSD1306_SETDISPLAYCLOCKDIV = 0xD5;
-const unsigned int SSD1306_SETPRECHARGE = 0xD9;
+const uint8_t SSD1306_SETDISPLAYCLOCKDIV 	= 0xD5;
+const uint8_t SSD1306_SETPRECHARGE 			= 0xD9;
 
-const unsigned int SSD1306_SETMULTIPLEX = 0xA8;
+const uint8_t SSD1306_SETMULTIPLEX 			= 0xA8;
 
-const unsigned int SSD1306_SETSTARTLINE = 0x40;
-const unsigned int SSD1306_SETLOWCOLUMN = 0x00;
-const unsigned int SSD1306_SETHIGHCOLUMN = 0x10;
+const uint8_t SSD1306_SETSTARTLINE 			= 0x40;
+const uint8_t SSD1306_SETLOWCOLUMN 			= 0x00;
+const uint8_t SSD1306_SETHIGHCOLUMN 		= 0x10;
 
-const unsigned int SSD1306_MEMORYMODE = 0x20;
+const uint8_t SSD1306_MEMORYMODE 			= 0x20;
+const uint8_t SSD1306_COLUMNADDR 			= 0x21;
+const uint8_t SSD1306_PAGEADDR 				= 0x22;
 
-const unsigned int SSD1306_COMSCANINC = 0xC0;
-const unsigned int SSD1306_COMSCANDEC = 0xC8;
+const uint8_t SSD1306_COMSCANINC 			= 0xC0;
+const uint8_t SSD1306_COMSCANDEC 			= 0xC8;
 
-const unsigned int SSD1306_SEGREMAP = 0xA0;
+const uint8_t SSD1306_SEGREMAP 				= 0xA0;
 
-const unsigned int SSD1306_CHARGEPUMP = 0x8D;
+const uint8_t SSD1306_CHARGEPUMP 			= 0x8D;
 
-// Scrolling const unsigned ints
-const unsigned int SSD1306_ACTIVATE_SCROLL = 0x2F;
-const unsigned int SSD1306_DEACTIVATE_SCROLL = 0x2E;
-const unsigned int SSD1306_SET_VERTICAL_SCROLL_AREA = 0xA3;
-const unsigned int SSD1306_RIGHT_HORIZONTAL_SCROLL = 0x26;
-const unsigned int SSD1306_LEFT_HORIZONTAL_SCROLL = 0x27;
-const unsigned int SSD1306_VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL = 0x29;
-const unsigned int SSD1306_VERTICAL_AND_LEFT_HORIZONTAL_SCROLL = 0x2A;
+// Scrolling constants
+const uint8_t SSD1306_ACTIVATE_SCROLL 		= 0x2F;
+const uint8_t SSD1306_DEACTIVATE_SCROLL 	= 0x2E;
+const uint8_t SSD1306_SET_VERTICAL_SCROLL_AREA = 0xA3;
+const uint8_t SSD1306_RIGHT_HORIZONTAL_SCROLL 	= 0x26;
+const uint8_t SSD1306_LEFT_HORIZONTAL_SCROLL 	= 0x27;
+const uint8_t SSD1306_VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL	= 0x29;
+const uint8_t SSD1306_VERTICAL_AND_LEFT_HORIZONTAL_SCROLL	= 0x2A;
 
 #define _BV(x) (1<<(x))
 
@@ -199,7 +201,7 @@ static void updateBoundingBox(uint8_t xmin, uint8_t ymin, uint8_t xmax,
 }
 
 SSD1306::SSD1306(BlackLib::BlackSPI* _spi, BlackLib::BlackGPIO* cs,
-		BlackLib::BlackGPIO* rst, unsigned char height) :
+		BlackLib::BlackGPIO* rst, uint8_t height) :
 				m_spi(_spi), m_cs(cs), m_rst(rst), m_height(height) {
 	if (m_spi == NULL) {
 		fprintf(stderr, "ERROR: No SPI bus initialised for SSD1306.\n");
@@ -228,7 +230,7 @@ SSD1306::SSD1306(BlackLib::BlackSPI* _spi, BlackLib::BlackGPIO* cs,
 }
 
 SSD1306::SSD1306(BlackLib::spiName spi, BlackLib::BlackGPIO* cs,
-		BlackLib::BlackGPIO* rst, unsigned char height) :
+		BlackLib::BlackGPIO* rst, uint8_t height) :
 				m_cs(cs), m_rst(rst), m_height(height) {
 	m_spi = new BlackLib::BlackSPI(spi);
 	m_spi->open(BlackLib::ReadWrite | BlackLib::NonBlock);
@@ -253,7 +255,7 @@ SSD1306::SSD1306(BlackLib::spiName spi, BlackLib::BlackGPIO* cs,
 }
 
 SSD1306::SSD1306(BlackLib::BlackI2C* i2c, BlackLib::BlackGPIO* rst,
-		unsigned char height) :
+		uint8_t height) :
 				m_i2c(i2c), m_rst(rst), m_height(height) {
 	if (m_i2c == NULL) {
 		fprintf(stderr, "ERROR: No I2C bus initialised for SSD1306.\n");
@@ -268,8 +270,8 @@ SSD1306::SSD1306(BlackLib::BlackI2C* i2c, BlackLib::BlackGPIO* rst,
 	m_spi = NULL;
 }
 
-SSD1306::SSD1306(BlackLib::i2cName i2c, unsigned int slaveAddress, BlackLib::BlackGPIO* rst,
-		unsigned char height) :
+SSD1306::SSD1306(BlackLib::i2cName i2c, uint8_t slaveAddress, BlackLib::BlackGPIO* rst,
+		uint8_t height) :
 				m_rst(rst), m_height(height) {
 	m_i2c = new BlackLib::BlackI2C(i2c, slaveAddress);
 	m_i2c->open(BlackLib::ReadWrite | BlackLib::NonBlock);
@@ -282,6 +284,7 @@ SSD1306::SSD1306(BlackLib::i2cName i2c, unsigned int slaveAddress, BlackLib::Bla
 }
 
 SSD1306::~SSD1306() {
+	command(SSD1306_DISPLAYOFF);
 	if (m_spi != NULL)
 		m_spi->close();
 	if (m_i2c != NULL)
@@ -317,13 +320,13 @@ void SSD1306::refresh(void) {
 
 	unsigned int minRow = yUpdateMin / 8;
 	unsigned int maxRow = yUpdateMax / 8;
-	command(0x22);   // Set page start/end addresses
-	command(minRow);
-	command(maxRow);
-
 	unsigned int minCol = xUpdateMin;
 	unsigned int maxCol = xUpdateMax;
-	command(0x21);                             // Set column start/end addresses
+
+	command(SSD1306_PAGEADDR);   // Set page start/end addresses
+	command(minRow);
+	command(maxRow);
+	command(SSD1306_COLUMNADDR); // Set column start/end addresses
 	command(minCol);
 	command(maxCol);
 
@@ -333,11 +336,12 @@ void SSD1306::refresh(void) {
 		for (int col = minCol; col <= maxCol; col++) {
 			if (m_spi != NULL) {
 				m_spi->transfer(buffer[(get_width() * row) + col]);
+				if (m_spi->fail())
+					fprintf(stderr, "ERROR: SPI write failed for %x.\n", buffer[(get_width() * row) + col]);
 			} else {
 				m_i2c->writeByte(SSD1306_DATA_MODE, buffer[(get_width() * row) + col]);
-				if (m_i2c->fail()) {
+				if (m_i2c->fail())
 					fprintf(stderr, "ERROR: I2C write failed for %x.\n", buffer[(get_width() * row) + col]);
-				}
 			}
 		}
 	}
@@ -349,10 +353,10 @@ void SSD1306::refresh(void) {
 
 #else
 
-	command(0x21);                             // Set column start/end addresses
+	command(SSD1306_COLUMNADDR); // Set column start/end addresses
 	command(0x00);// Start == 0
 	command(0x7F);// End = 127
-	command(0x22);// Set page start/end addresses
+	command(SSD1306_PAGEADDR);   // Set page start/end addresses
 	command(0x00);// Start == 0
 	command(get_height()/8-1);// End == #rows/8
 
@@ -360,6 +364,8 @@ void SSD1306::refresh(void) {
 	for (int i = 0; i < get_height()*get_width()/8; i++) {
 		if (m_spi) {
 			m_spi->transfer(buffer[i]);
+			if (m_spi->fail())
+				fprintf(stderr, "ERROR: SPI write failed for %x.\n", buffer[(get_width() * row) + col]);
 		} else {
 			m_i2c->writeByte(SSD1306_DATA_MODE, buffer[i]);
 			if (m_i2c->fail()) {
@@ -458,12 +464,11 @@ void SSD1306::begin() {
 }
 
 void SSD1306::command(uint8_t c) {
-	uint8_t cmd = c;
 	if (m_spi != NULL) {
 		m_dc->setValue(BlackLib::low);
 		if (m_cs != NULL)
 			m_cs->setValue(BlackLib::low);
-		m_spi->transfer(cmd);
+		m_spi->transfer(c);
 		if (m_cs != NULL)
 			m_cs->setValue(BlackLib::high);
 	} else {
@@ -473,6 +478,23 @@ void SSD1306::command(uint8_t c) {
 		}
 	}
 }
+
+void SSD1306::data(uint8_t* buffer, size_t bufferSize) {
+	if (m_spi != NULL) {
+		m_dc->setValue(BlackLib::low);
+		if (m_cs != NULL)
+			m_cs->setValue(BlackLib::low);
+		m_spi->transfer(buffer, buffer, bufferSize);
+		if (m_cs != NULL)
+			m_cs->setValue(BlackLib::high);
+	} else {
+		for (int i = 0; i < bufferSize; i += 16) {
+			m_i2c->writeBlock(SSD1306_DATA_MODE, &buffer[i], 16);
+		}
+	}
+}
+
+
 
 } /* SSD1306 */
 
