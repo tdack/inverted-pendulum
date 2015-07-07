@@ -50,7 +50,7 @@ void controller() {
 	fx.setTextColor(SSD1306::RGB::black, SSD1306::RGB::white);
 	fx.setTextSize(1);
 	fx.setCursor(0,0);
-	fx.write("\n Raise the pendulum\n P:\n M:");
+	fx.write("\n Raise the pendulum\n\n P:\n M:");
 	fx.drawRoundRect(0,0,fx.getWidth(),fx.getHeight(), 8, SSD1306::RGB::black);
 	// Start the thread running
 	pendulumEQEP->run();
@@ -58,10 +58,9 @@ void controller() {
 	// Wait until the pendulum is @ 180 +-1 deg
 	// Assumes pendulum starts hanging vertically down
 	while (abs(pendulumEQEP->getAngleDeg()) < 179 || abs(pendulumEQEP->getAngleDeg() > 181))  {
-		fx.setCursor(18, 16);
+		fx.setCursor(18, 24);
 		fx.write(to_string(pendulumEQEP->getAngleDeg()).c_str());
 		fx.refreshScreen();
-		usleep(20);
 	}
 
 	// Create a new PID controller thread
@@ -75,9 +74,9 @@ void controller() {
 	int count = 0;
 	while (count < 50)  {
 		count++;
-		fx.setCursor(18,16);
-		fx.write(to_string(pendulumEQEP->getAngleDeg()).c_str());
 		fx.setCursor(18,24);
+		fx.write(to_string(pendulumEQEP->getAngleDeg()).c_str());
+		fx.setCursor(18,32);
 		fx.write(to_string(motorEQEP->getAngleDeg()).c_str());
 		fx.setCursor(110,54);
 		fx.write(to_string(count).c_str());
@@ -194,8 +193,8 @@ int main(int argc, char const *argv[]) {
 		return -1;
 	}
 
-	testOLED();
-	motorTest();
+//	testOLED();
+//	motorTest();
 	controller();
 	return 0;
 }
