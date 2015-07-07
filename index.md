@@ -18,7 +18,8 @@ per revolution and increases the angular resolution of each encoder.
 |Pendulum Encoder | 600 | 2400 | 0.15°|
 |Motor Encoder | 400 | 1600 | 0.23°|
 
-Code is available at http://github.com/tdack/inverted-pendulum
+Code is available at [inverted-pendulum](http://github.com/tdack/inverted-pendulum).
+
 Schematics, drawings and CAD files will be available once the project is complete
 and the design has stabilised.
 
