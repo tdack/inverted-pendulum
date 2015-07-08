@@ -36,3 +36,5 @@ src/doxygen_sqlite3.db
 Pololu
 /.pydevproject
 *.dtbo
+/Websocket/
+/Pendulum/
