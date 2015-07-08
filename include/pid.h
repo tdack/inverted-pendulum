@@ -33,10 +33,10 @@ class pid : public BlackLib::BlackThread {
 
 private:
 	float motor_voltage; // input voltage to motor controller
-	float k_p; 			 // proportional factor
-	float k_i; 			 // integral factor
-	float k_d; 			 // derivative factor
-	float err_p; 		 // proportional error
+	std::atomic<float> k_p; 			 // proportional factor
+	std::atomic<float> k_i; 			 // integral factor
+	std::atomic<float> k_d; 			 // derivative factor
+	std::atomic<float> err_p; 		 // proportional error
 	float err_i; 		 // integral error
 	float err_d; 		 // derivative error
 	float motor_speed;
@@ -62,6 +62,19 @@ public:
 	void onStartHandler();
 
 	void stop();
+
+	float getKP();
+
+	void setKP(float _k_p);
+
+	float getKI();
+
+	void setKI(float _k_i);
+
+	float getKD();
+
+	void setKD(float _k_d);
+
 };
 
 #endif /* INCLUDE_PID_H_ */
