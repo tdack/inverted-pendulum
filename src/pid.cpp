@@ -82,7 +82,7 @@ void pid::stop() {
 }
 
 float pid::getKP() {
-	return k_p;
+	return k_p.load();
 }
 
 void pid::setKP(float _k_p)
@@ -92,7 +92,7 @@ void pid::setKP(float _k_p)
 }
 
 float pid::getKI() {
-	return k_i;
+	return k_i.load();
 }
 
 void pid::setKI(float _k_i)
@@ -102,7 +102,7 @@ void pid::setKI(float _k_i)
 }
 
 float pid::getKD() {
-	return k_d;
+	return k_d.load();
 }
 
 void pid::setKD(float _k_d)
