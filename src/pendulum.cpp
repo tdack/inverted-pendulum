@@ -137,25 +137,43 @@ public:
 			char buffer[1024];
 			int flags;
 			int n;
+			Parser loParser;
+			Poco::Dynamic::Var parsedJSON;
+			Poco::Dynamic::Var parsedJSONResult;
+			Object::Ptr JSONObject;
 			do
 			{
 				n = ws.receiveFrame(buffer, sizeof(buffer), flags);
-				string buf(buffer);
-				string out;
-				if (buf.find("pendulum") != string::npos) {
-					out = std::to_string(pendulumEQEP->getAngleDeg());
-					ws.sendFrame(out.data(), out.length()+1);
-				} else if (buf.find("kp") != string::npos) {
-					out = std::to_string(Controller->getKP());
-					cout << "kp: " << out << endl;
-					ws.sendFrame(out.data(), out.length()+1);
-				} else if (buf.find("ki") != string::npos) {
-					out = std::to_string(Controller->getKI());
-					cout << "ki: " << out << endl;
-					ws.sendFrame(out.data(), out.length()+1);
-				} else if (buf.find("kd") != string::npos) {
-					out = std::to_string(Controller->getKD());
-					cout << "kd: " << out << endl;
+
+			    string lsJson;
+			    Parser loParser;
+			    string out;
+			    lsJson = string(buffer);
+
+			    cout << lsJson << endl;
+
+			    // Parse the JSON and get the Results
+			    Poco::Dynamic::Var loParsedJson = loParser.parse(lsJson);
+			    Poco::Dynamic::Var loParsedJsonResult = loParser.result();
+
+			    // Get the JSON Object
+			    Object::Ptr loJsonObject = loParsedJsonResult.extract<Object::Ptr>();
+			    string action = GetValue(loJsonObject, "action");
+			    if (action.find("get") != string::npos) {
+			    	string param = GetValue(loJsonObject, "param");
+			    	out = "{ \"param\": \"" + param + "\", \"value\": \"";
+					if (param.find("pendulum") != string::npos) {
+						out += std::to_string(pendulumEQEP->getAngleDeg()) + "\" }";
+					} else if (param.find("kp") != string::npos) {
+						out += std::to_string(Controller->getKP()) + "\" }";;
+						cout << "kp: " << out << endl;
+					} else if (param.find("ki") != string::npos) {
+						out += std::to_string(Controller->getKI()) + "\" }";;
+						cout << "ki: " << out << endl;
+					} else if (param.find("kd") != string::npos) {
+						out += std::to_string(Controller->getKD()) + "\" }";;
+						cout << "kd: " << out << endl;
+					}
 					ws.sendFrame(out.data(), out.length()+1);
 				} else {
 					ws.sendFrame(buffer, n, flags);
