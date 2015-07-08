@@ -23,6 +23,20 @@
 
 #ifndef INCLUDE_PENDULUM_H_
 #define INCLUDE_PENDULUM_H_
+#include <pid.h>
+#include <pololu_serial.h>
+#include <SSD1306/gfx.h>
+#include <SSD1306/rgb_driver.h>
+#include <SSD1306/ssd1306.h>
+#include <threadedEQEP.h>
+#include <rlutil.h>
+#include <sys/stat.h>
+#include <cmath>
+#include <cstdbool>
+#include <iomanip>
+#include <iostream>
+#include <string>
+#include <vector>
 
 
 /**

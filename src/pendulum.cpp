@@ -10,26 +10,7 @@
  *
  **/
 
-#include <BlackLib/BlackDef.h>
-#include <BlackLib/BlackGPIO/BlackGPIO.h>
-#include <BlackLib/BlackI2C/BlackI2C.h>
-#include <BlackLib/BlackThread/BlackThread.h>
 #include <pendulum.h>
-#include <pid.h>
-#include <pololu_serial.h>
-#include <rlutil.h>
-#include <sys/stat.h>
-#include <SSD1306/gfx.h>
-#include <SSD1306/rgb_driver.h>
-#include <SSD1306/ssd1306.h>
-#include <threadedEQEP.h>
-#include <unistd.h>
-#include <cmath>
-#include <cstdbool>
-#include <iomanip>
-#include <iostream>
-#include <string>
-#include <vector>
 
 using namespace std;
 

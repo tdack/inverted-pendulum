@@ -25,10 +25,11 @@
 #include <pololu_serial.h>
 #include <termios.h> // POSIX terminal control definitions
 #include <unistd.h>
+#include <cstdbool>
 #include <cstdio>
+#include <iostream>
 #include <stdexcept>
 #include <string>
-#include <iostream>
 
 namespace Pololu {
 
