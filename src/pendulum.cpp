@@ -174,7 +174,7 @@ public:
 						out += std::to_string(Controller->getKD()) + "\" }";;
 						cout << "kd: " << out << endl;
 					}
-					ws.sendFrame(out.data(), out.length()+1);
+					ws.sendFrame(out.data(), out.length()); // Don't include a trailing \0
 				} else {
 					ws.sendFrame(buffer, n, flags);
 				}
