@@ -1,6 +1,8 @@
 # Beagle Bone Black Connections
 
 ## P8
+	P8-8		LED
+	P8-9		LED
 
 	P8-19		PWM Speaker
 
@@ -9,13 +11,15 @@
     
 ## P9
 
-	P8-1		) GND
-	P8-2		) 
+	P9-1		) GND
+	P9-2		) 
 
-	P8-5		) VDD_5V -  From voltage regulator / battery
-	P8-6		)        -  or from barrel jack and power adaptor
+	P9-5		) VDD_5V -  From voltage regulator / battery
+	P9-6		)        -  or from barrel jack and power adaptor
 			)        -  Required for encoders 
 
+	P9-19		) OLED I2C connection
+	P9-20		) 
 	P9-21		UART2 Tx
 	P9-22		UART2 Rx
 	P9-27		eQEP0B_in	Motor encoder
