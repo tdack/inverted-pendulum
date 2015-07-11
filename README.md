@@ -6,8 +6,10 @@ It is to control a rotary inverted pendulum that is connected to a BeagleBone Bl
 
 The BeagleBone Black is interfaced to the following peripherals:
 
- + Pololu 18v7 Simple Motor Controller
- + 2 x 400ppr quadrature encoders (giving 1600ppr in x4 mode)
+ + Pololu 18v15 Simple Motor Controller (serial connection via UART)
+ + 400ppr quadrature encoder (1600ppr in x4 mode)
+ + 600ppr quadrature encoder (2400ppr in x4 mode)
+ + SSD1306 128x64 pixel OLED display (I2C connection)
   
 The encoders are read via the built in eQEP (Enhanced Quadrature Encoder Pulse) modules on the BeagleBone Black
 
@@ -34,4 +36,4 @@ Black hardware. They are used in accordance with their respective licenses.
 
  + [BlackLib](https://github.com/yigityuce/BlackLib) - GPIO, PWM and threading library
  + [BBB-eQEP](https://github.com/jadedanemone/BBB-eQEP) - Memory mapped library for fast access to eQEPs.
- 
+ + [Bonelib](http://sourceforge.net/p/bonelib/wiki/SSD1306.hpp/) - SSD1306 driver, modified to use BlackLib
