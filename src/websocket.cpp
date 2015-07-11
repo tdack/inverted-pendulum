@@ -36,23 +36,35 @@
 //
 
 
-#include "Poco/Net/HTTPServer.h"
-#include "Poco/Net/HTTPRequestHandler.h"
-#include "Poco/Net/HTTPRequestHandlerFactory.h"
-#include "Poco/Net/HTTPServerParams.h"
-#include "Poco/Net/HTTPServerRequest.h"
-#include "Poco/Net/HTTPServerResponse.h"
-#include "Poco/Net/HTTPServerParams.h"
-#include "Poco/Net/ServerSocket.h"
-#include "Poco/Net/WebSocket.h"
-#include "Poco/Net/NetException.h"
-#include "Poco/Util/ServerApplication.h"
-#include "Poco/Util/Option.h"
-#include "Poco/Util/OptionSet.h"
-#include "Poco/Util/HelpFormatter.h"
-#include "Poco/Format.h"
+#include <Poco/Dynamic/Var.h>
+#include <Poco/Format.h>
+#include <Poco/JSON/Object.h>
+#include <Poco/JSON/Parser.h>
+#include <Poco/Logger.h>
+#include <Poco/Net/HTTPRequestHandler.h>
+#include <Poco/Net/HTTPRequestHandlerFactory.h>
+#include <Poco/Net/HTTPResponse.h>
+#include <Poco/Net/HTTPServer.h>
+#include <Poco/Net/HTTPServerParams.h>
+#include <Poco/Net/HTTPServerRequest.h>
+#include <Poco/Net/HTTPServerResponse.h>
+#include <Poco/Net/NetException.h>
+#include <Poco/Net/ServerSocket.h>
+#include <Poco/Net/SocketAddress.h>
+#include <Poco/Net/WebSocket.h>
+#include <Poco/String.h>
+#include <Poco/Util/AbstractConfiguration.h>
+#include <Poco/Util/Application.h>
+#include <Poco/Util/HelpFormatter.h>
+#include <Poco/Util/Option.h>
+#include <Poco/Util/OptionSet.h>
+#include <Poco/Util/ServerApplication.h>
 #include <iostream>
-
+#include <list>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 using Poco::Net::ServerSocket;
 using Poco::Net::WebSocket;
@@ -137,11 +149,70 @@ public:
 			char buffer[1024];
 			int flags;
 			int n;
+			int kp = 40;
+			int ki = 5;
+			int kd = 15;
 			do
 			{
 				n = ws.receiveFrame(buffer, sizeof(buffer), flags);
 				app.logger().information(Poco::format("Frame received (length=%d, flags=0x%x).", n, unsigned(flags)));
-				ws.sendFrame(buffer, n, flags);
+				std::string rxJSON(buffer, n); // convert received frame into a string
+				Poco::JSON::Parser Parser;
+				Poco::Dynamic::Var result = Parser.parse(rxJSON); // parse JSON
+				Poco::JSON::Object::Ptr obj = result.extract<Poco::JSON::Object::Ptr>();
+				std::string action;
+				std::string param;
+				std::string out;
+				std::ostringstream ossRx;
+				std::ostringstream ossTx;
+				obj->stringify(ossRx, 0);
+				app.logger().information(Poco::format("Rx: %s", ossRx.str()));
+				if (obj->has("action")) {
+					action = obj->getValue<std::string>("action");
+					param = "";
+					if (obj->has("param")) {
+						param = obj->getValue<std::string>("param");
+					}
+					if ( action == "get") {
+						if (param == "pendulum") {
+							obj->set("value", -11.75);
+							out += "-11.75";
+						} else
+						if (param == "kp") {
+							obj->set("value", kp);
+						} else
+						if (param == "ki") {
+							obj->set("value", ki);
+						} else
+						if (param == "kd") {
+							obj->set("value", kd);
+						}
+					} else if (action == "set") {
+						int val;
+						if (obj->has("value")) {
+							val = obj->getValue<int>("value");
+						} else {
+							val = -1;
+						}
+						if (param == "kp") {
+							kp = val;
+							obj->set("value", std::to_string(kp));
+						} else
+						if (param == "ki") {
+							ki = val;
+							obj->set("value", std::to_string(ki));
+						} else
+						if (param == "kd") {
+							kd = val;
+							obj->set("value", std::to_string(kd));
+						}
+					}
+				}
+				obj->remove("action");
+				obj->stringify(ossTx,0);
+				out = ossTx.str();
+				app.logger().information(Poco::format("Tx: %s", ossTx.str()));
+				ws.sendFrame(out.data(), out.size(), flags);
 			}
 			while (n > 0 || (flags & WebSocket::FRAME_OP_BITMASK) != WebSocket::FRAME_OP_CLOSE);
 			app.logger().information("WebSocket connection closed.");
@@ -277,6 +348,7 @@ protected:
 			ServerSocket svs(port);
 			// set-up a HTTPServer instance
 			HTTPServer srv(new RequestHandlerFactory, svs, new HTTPServerParams);
+			std::cout << "Starting websocket server on port " << port << std::endl;
 			// start the HTTPServer
 			srv.start();
 			// wait for CTRL-C or kill
