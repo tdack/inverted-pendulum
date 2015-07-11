@@ -260,8 +260,9 @@
 								<option id="gnu.cpp.link.option.shared.760599690" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" value="false" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.debugging.codecov.1059721913" name="Generate gcov information (-ftest-coverage -fprofile-arcs)" superClass="gnu.cpp.link.option.debugging.codecov" value="false" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.libs.572196292" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
-									<listOptionValue builtIn="false" value="PocoFoundation"/>
 									<listOptionValue builtIn="false" value="rt"/>
+									<listOptionValue builtIn="false" value="PocoFoundation"/>
+									<listOptionValue builtIn="false" value="PocoJSON"/>
 									<listOptionValue builtIn="false" value="PocoUtil"/>
 									<listOptionValue builtIn="false" value="PocoNet"/>
 								</option>
