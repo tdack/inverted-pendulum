@@ -105,7 +105,6 @@ bool checkOverlays(){
 	struct stat buffer;
 	bool overlays_loaded = true;
 
-	rlutil::setColor(rlutil::RED);
 	for (std::string& file : files) {
 		if (stat(file.c_str(), &buffer) != 0) {
 			rlutil::setColor(rlutil::YELLOW);
