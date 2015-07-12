@@ -306,14 +306,16 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Websocket"/>
 		<configuration configurationName="x86">
 			<resource resourceType="PROJECT" workspacePath="/Pololu"/>
 		</configuration>
+		<configuration configurationName="Pendulum"/>
 		<configuration configurationName="Debug (Local)"/>
-		<configuration configurationName="Debug">
+		<configuration configurationName="Release">
 			<resource resourceType="PROJECT" workspacePath="/Pololu"/>
 		</configuration>
-		<configuration configurationName="Release">
+		<configuration configurationName="Debug">
 			<resource resourceType="PROJECT" workspacePath="/Pololu"/>
 		</configuration>
 	</storageModule>
