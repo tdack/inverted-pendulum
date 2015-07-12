@@ -10,7 +10,17 @@
  *
  **/
 
+#include <BlackLib/BlackI2C/BlackI2C.h>
+#include <BlackLib/BlackThread/BlackThread.h>
 #include <pendulum.h>
+#include <Poco/JSON/Object.h>
+#include <Poco/Net/HTTPResponse.h>
+#include <Poco/Net/SocketAddress.h>
+#include <Poco/String.h>
+#include <unistd.h>
+#include <list>
+#include <sstream>
+#include <utility>
 
 using namespace std;
 
@@ -32,7 +42,7 @@ using namespace std;
 #include <Poco/JSON/Parser.h>
 #include <Poco/Dynamic/Var.h>
 #include <iostream>
-
+#include <string>
 
 using Poco::Net::ServerSocket;
 using Poco::Net::WebSocket;
@@ -145,6 +155,65 @@ public:
 			{
 				n = ws.receiveFrame(buffer, sizeof(buffer), flags);
 
+//				app.logger().information(Poco::format("Frame received (length=%d, flags=0x%x).", n, unsigned(flags)));
+				std::string rxJSON(buffer, n); // convert received frame into a string
+				Poco::JSON::Parser Parser;
+				Poco::Dynamic::Var result = Parser.parse(rxJSON); // parse JSON
+				Poco::JSON::Object::Ptr obj = result.extract<Poco::JSON::Object::Ptr>();
+				std::string action;
+				std::string param;
+				std::string out;
+				std::ostringstream ossRx;
+				std::ostringstream ossTx;
+				obj->stringify(ossRx, 0);
+//				app.logger().information(Poco::format("Rx: %s", ossRx.str()));
+				if (obj->has("action")) {
+					action = obj->getValue<std::string>("action");
+					param = "";
+					if (obj->has("param")) {
+						param = obj->getValue<std::string>("param");
+					}
+					if ( action == "get") {
+						if (param == "pendulum") {
+							obj->set("value", pendulumEQEP->getAngleDeg());
+						} else
+						if (param == "kp") {
+							obj->set("value", Controller->getKP());
+						} else
+						if (param == "ki") {
+							obj->set("value", Controller->getKI());
+						} else
+						if (param == "kd") {
+							obj->set("value", Controller->getKD());
+						}
+					} else if (action == "set") {
+						float val;
+						if (obj->has("value")) {
+							val = obj->getValue<float>("value");
+						} else {
+							val = -1;
+						}
+						if (param == "kp") {
+							Controller->setKP(val);
+							obj->set("value", val);
+						} else
+						if (param == "ki") {
+							Controller->setKI(val);
+							obj->set("value", val);
+						} else
+						if (param == "kd") {
+							Controller->setKD(val);
+							obj->set("value", val);
+						}
+					}
+				}
+				obj->remove("action");
+				obj->stringify(ossTx,0);
+				out = ossTx.str();
+//				app.logger().information(Poco::format("Tx: %s", ossTx.str()));
+				ws.sendFrame(out.data(), out.size(), flags);
+
+/*
 			    string lsJson;
 			    Parser loParser;
 			    string out;
@@ -175,10 +244,11 @@ public:
 						cout << "kd: " << out << endl;
 					}
 					ws.sendFrame(out.data(), out.length()); // Don't include a trailing \0
-				} else {
+			    } else {
 					ws.sendFrame(buffer, n, flags);
 				}
 				cout << "Frame received (length=" << std::to_string(n) << ", flags=" << std::hex << unsigned(flags) << ")." << endl;
+*/
 			}
 			while (n > 0 || (flags & WebSocket::FRAME_OP_BITMASK) != WebSocket::FRAME_OP_CLOSE);
 			cout << "WebSocket connection closed." << endl;
@@ -297,6 +367,7 @@ bool checkOverlays(){
 	struct stat buffer;
 	bool overlays_loaded = true;
 
+	std::cout << "Checking overlays" << std::endl;
 	for (std::string& file : files) {
 		if (stat(file.c_str(), &buffer) != 0) {
 			rlutil::setColor(rlutil::YELLOW);
