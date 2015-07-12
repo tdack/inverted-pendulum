@@ -65,6 +65,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <stdlib.h>
 
 using Poco::Net::ServerSocket;
 using Poco::Net::WebSocket;
@@ -175,8 +176,7 @@ public:
 					}
 					if ( action == "get") {
 						if (param == "pendulum") {
-							obj->set("value", -11.75);
-							out += "-11.75";
+							obj->set("value", std::rand() % 120 - 60);
 						} else
 						if (param == "kp") {
 							obj->set("value", kp);
