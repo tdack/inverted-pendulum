@@ -80,33 +80,3 @@ void pid::stop() {
 	pendulumEQEP->stop();
 	bExit.store(true);
 }
-
-float pid::getKP() {
-	return k_p;
-}
-
-void pid::setKP(float _k_p)
-{
-	k_p.store(_k_p);
-	return;
-}
-
-float pid::getKI() {
-	return k_i;
-}
-
-void pid::setKI(float _k_i)
-{
-	k_i.store(_k_i);
-	return;
-}
-
-float pid::getKD() {
-	return k_d;
-}
-
-void pid::setKD(float _k_d)
-{
-	k_d.store(_k_d);
-	return;
-}
