@@ -64,7 +64,7 @@ void controller() {
 	}
 
 	// Create a new PID controller thread
-	pid *Controller = new pid(11.7, 10, 8, 40, pendulumEQEP, motorEQEP);
+	pid *Controller = new pid(11.7, 25, 10, 30, pendulumEQEP, motorEQEP);
 
 	Controller->run();
 
@@ -72,7 +72,7 @@ void controller() {
 	fx.setCursor(6,8);
 	fx.write("PID Running ....  ");
 	int count = 0;
-	while (count < 50)  {
+	while (count < 10)  {
 		count++;
 		fx.setCursor(18,24);
 		fx.write(to_string(pendulumEQEP->getAngleDeg()).c_str());
