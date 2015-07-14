@@ -22,14 +22,18 @@
  **/
 
 
-#ifndef INCLUDE_PID_H_
-#define INCLUDE_PID_H_
+#ifndef INCLUDE_PID_MODEL1_H_
+#define INCLUDE_PID_MODEL1_H_
 
+#include <BlackLib/BlackThread/BlackThread.h>
 #include <atomic>
-#include "pololu_serial.h"
-#include "threadedEQEP.h"
+#include <cstdbool>
 
-class pid : public BlackLib::BlackThread {
+class threadedEQEP;
+
+namespace PID {
+
+class model1 : public BlackLib::BlackThread {
 
 private:
 	float motor_voltage; // input voltage to motor controller
@@ -55,13 +59,13 @@ public:
 	 * @param k_i		integral control constant
 	 * @param k_d		derivative control constant
 	 */
-	pid(float motor_voltage, float k_p, float k_i, float k_d);
+	model1(float motor_voltage, float k_p, float k_i, float k_d);
 
-	pid(float _motor_voltage, float _k_p, float _k_i, float _k_d, threadedEQEP *_pendulumEQEP, threadedEQEP *_motorEQEP);
+	model1(float _motor_voltage, float _k_p, float _k_i, float _k_d, threadedEQEP *_pendulumEQEP, threadedEQEP *_motorEQEP);
 
 	void onStartHandler();
 
 	void stop();
 };
-
-#endif /* INCLUDE_PID_H_ */
+}; /* namespace PID*/
+#endif /* INCLUDE_PID_MODEL1_H_ */

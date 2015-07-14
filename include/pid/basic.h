@@ -1,6 +1,6 @@
 /**
- *! @file pid-new.h
- *! Threaded pid-new controller header file
+ *! @file basic.h
+ *! Threaded basic controller header file
  *!
  *! @author troy
  *! @date Copyright (C) 2015
@@ -21,34 +21,35 @@
  *
  **/
 
-#ifndef INCLUDE_PID_NEW_H_
-#define INCLUDE_PID_NEW_H_
+#ifndef INCLUDE_PID_BASIC_H_
+#define INCLUDE_PID_BASIC_H_
 
 #include <BlackLib/BlackThread/BlackThread.h>
 #include <atomic>
-#include <cstdbool>
 #include <chrono>
+#include <cstdbool>
 
-class pid_new : public BlackLib::BlackThread {
+namespace PID {
+class basic: public BlackLib::BlackThread {
 
 public:
 
 	/**
 	 * Proportional-Integral-Derivative controller for inverted pendulum
 	 */
-	pid_new(double* Input, double* Output, double* SetPoint, double _kp,
+	basic(double* Input, double* Output, double* SetPoint, double _kp,
 			double _ki, double _kd, int dir);
 
 	void SetMode(int Mode); // * sets pid-new to either Manual (0) or Auto (non-0)
 
-	void SetOutputLimits(double Min, double Max); 	//clamps the output to a specific range. 0-255 by default, but
-													//it's likely the user will want to change this depending on
-													//the application
+	void SetOutputLimits(double Min, double Max); //clamps the output to a specific range. 0-255 by default, but
+												  //it's likely the user will want to change this depending on
+												  //the application
 
-	//available but not commonly used functions ********************************************************
-	void SetTunings(double kp, double ki, 	// * While most users will set the tunings once in the
-			double kd); 					//   constructor, this function gives the user the option
-											//   of changing tunings during runtime for Adaptive control
+												  //available but not commonly used functions ********************************************************
+	void SetTunings(double kp, double ki, // * While most users will set the tunings once in the
+			double kd); //   constructor, this function gives the user the option
+						//   of changing tunings during runtime for Adaptive control
 
 	void SetControllerDirection(int);// * Sets the Direction, or "Action" of the controller. DIRECT
 									 //   means the output will increase when error is positive. REVERSE
@@ -58,8 +59,8 @@ public:
 	void SetSampleTime(int); // * sets the frequency, in Milliseconds, with which
 							 //   the pid-new calculation is performed.  default is 100
 
-							// Display functions
-							//****************************************************************
+							 // Display functions
+							 //****************************************************************
 	double GetKp();			// These functions query the pid for interal values.
 	double GetKi();			// they were created mainly for the pid front-end,
 	double GetKd();			// where it's important to know what is actually
@@ -74,9 +75,9 @@ private:
 	void Initialize();
 	void Compute(); // does the actual PID calculations
 
-	std::atomic<bool> bExit; // flag that thread should quit
+	std::atomic<bool> bExit; 	// flag to tell thread to quit
 
-	double dispKp;	// * we'll hold on to the tuning parameters in user-entered
+	double dispKp;				// * we'll hold on to the tuning parameters in user-entered
 	double dispKi;				//   format for display purposes
 	double dispKd;				//
 
@@ -88,7 +89,7 @@ private:
 
 	double *myInput;  // * Pointers to the Input, Output, and Setpoint variables
 	double *myOutput; //   This creates a hard link between the variables and the
-	double *mySetPoint; //   pid-new, freeing the user from having to constantly tell us
+	double *mySetPoint; //   pid, freeing the user from having to constantly tell us
 						//   what these values are.  with pointers we'll just know.
 
 	std::chrono::high_resolution_clock::time_point lastTime;
@@ -98,4 +99,7 @@ private:
 	double outMin, outMax;bool inAuto;
 };
 
-#endif /* INCLUDE_PID_NEW_H_ */
+}
+;
+/* namespace PID */
+#endif /* INCLUDE_PID_BASIC_H_ */

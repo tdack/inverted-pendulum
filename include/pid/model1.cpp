@@ -11,11 +11,14 @@
  **/
 
 #include <pendulum.h>
-#include <pid.h>
-#include <cstdbool>
+#include <pid/model1.h>
+#include <pololu_serial.h>
+#include <threadedEQEP.h>
 #include <iostream>
 
-pid::pid(float _motor_voltage, float _k_p, float _k_i, float _k_d)
+namespace PID {
+
+model1::model1(float _motor_voltage, float _k_p, float _k_i, float _k_d)
 : motor_voltage(_motor_voltage), k_p(_k_p), k_i(_k_i), k_d(_k_d) {
 	err_p = 0.0; // proportional error
 	err_i = 0.0; // integral error
@@ -26,7 +29,7 @@ pid::pid(float _motor_voltage, float _k_p, float _k_i, float _k_d)
 	bExit.store(false);
 }
 
-pid::pid(float _motor_voltage, float _k_p, float _k_i, float _k_d, threadedEQEP *_pendulumEQEP, threadedEQEP *_motorEQEP)
+model1::model1(float _motor_voltage, float _k_p, float _k_i, float _k_d, threadedEQEP *_pendulumEQEP, threadedEQEP *_motorEQEP)
 : motor_voltage(_motor_voltage), k_p(_k_p), k_i(_k_i), k_d(_k_d),
   pendulumEQEP(_pendulumEQEP),
   motorEQEP(_motorEQEP) {
@@ -38,7 +41,7 @@ pid::pid(float _motor_voltage, float _k_p, float _k_i, float _k_d, threadedEQEP 
 }
 
 
-void pid::onStartHandler() {
+void model1::onStartHandler() {
 
 	float u = 0.0;
 
@@ -74,8 +77,9 @@ void pid::onStartHandler() {
 	SMC->SetTargetSpeed(0);
 }
 
-void pid::stop() {
+void model1::stop() {
 	motorEQEP->stop();
 	pendulumEQEP->stop();
 	bExit.store(true);
-}
+};
+}; /* namespace PID */

@@ -1,5 +1,5 @@
 /**
- * @file pid-new.cpp
+ * @file basic.cpp
  * @brief Threaded PID controller
  *
  * Threaded PID controller based on https://github.com/br3ttb/Arduino-PID-Library
@@ -12,105 +12,109 @@
  *
  **/
 
-#include <pendulum.h>
-#include <pid-new.h>
-#include <cstdbool>
+#include <pid/basic.h>
 #include <iostream>
-#include <atomic>
+#include <ratio>
 #include <string>
 
-	pid_new::pid_new(double* Input, double* Output, double* SetPoint, double _kp, double _ki, double _kd, int dir)
-: myInput(Input), myOutput(Output), mySetPoint(SetPoint), inAuto(false) {
+namespace PID {
+basic::basic(double* Input, double* Output, double* SetPoint, double _kp,
+		double _ki, double _kd, int dir) :
+		myInput(Input), myOutput(Output), mySetPoint(SetPoint), inAuto(false) {
 	bExit.store(false);
 	SampleTime = 0.100;
-	pid_new::SetOutputLimits(0,100);
-	pid_new::SetControllerDirection(dir);
-	pid_new::SetTunings(_kp, _ki, _kd);
+	basic::SetOutputLimits(0, 100);
+	basic::SetControllerDirection(dir);
+	basic::SetTunings(_kp, _ki, _kd);
 	lastTime = std::chrono::high_resolution_clock::now();
 }
 
-void pid_new::Compute() {
-	   if(!inAuto) return;
-	   std::chrono::duration<float, std::deci> timeChange;
-	   std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
-	   timeChange = (now - lastTime);
-	   if(timeChange.count() >= SampleTime)
-	   {
-		   std::cout << timeChange.count();
-		  /*Compute all the working error variables*/
-		  double input = *myInput;
-		  double error = *mySetPoint - input;
-		  std::cout << "\t Input: " << std::to_string(input) << "\tError: " << std::to_string(error) << "\t";
-		  ITerm += (ki * error);
-		  if (ITerm > outMax) ITerm = outMax;
-		  else if(ITerm < outMin) ITerm = outMin;
-		  double dInput = (input - lastInput);
+void basic::Compute() {
+	if (!inAuto)
+		return;
+	std::chrono::duration<float, std::deci> timeChange;
+	std::chrono::high_resolution_clock::time_point now =
+			std::chrono::high_resolution_clock::now();
+	timeChange = (now - lastTime);
+	if (timeChange.count() >= SampleTime) {
+		/*Compute all the working error variables*/
+		double input = *myInput;
+		double error = *mySetPoint - input;
+		ITerm += (ki * error);
+		if (ITerm > outMax)
+			ITerm = outMax;
+		else if (ITerm < outMin)
+			ITerm = outMin;
+		double dInput = (input - lastInput);
 
-		  /*Compute PID Output*/
-		  double output = kp * error + ITerm - kd * dInput;
+		/*Compute PID Output*/
+		double output = kp * error + ITerm - kd * dInput;
 
-		  if (output > outMax) output = outMax;
-		  else if(output < outMin) output = outMin;
-		  *myOutput = output;
+		if (output > outMax)
+			output = outMax;
+		else if (output < outMin)
+			output = outMin;
+		*myOutput = output;
 
-		  /*Remember some variables for next time*/
-		  lastInput = input;
-		  lastTime = now;
-		  std::cout << "Output: " << std::to_string(*myOutput) << std::endl;
-	   }
-	   return;
+		/*Remember some variables for next time*/
+		lastInput = input;
+		lastTime = now;
+		std::cout << timeChange.count();
+		std::cout << "\t Input: " << std::to_string(input) << "\tError: "
+				<< std::to_string(error) << "\t";
+		std::cout << "Output: " << std::to_string(*myOutput) << std::endl;
+	}
+	return;
 }
 
-void pid_new::onStartHandler(){
+void basic::onStartHandler() {
+	Initialize();
 	while (!bExit.load()) {
 		this->Compute();
 		yield();
 	}
 }
 
-void pid_new::stop(){
+void basic::stop() {
 	bExit.store(true);
 }
-
 
 /* SetTunings(...)*************************************************************
  * This function allows the controller's dynamic performance to be adjusted.
  * it's called automatically from the constructor, but tunings can also
  * be adjusted on the fly during normal operation
  ******************************************************************************/
-void pid_new::SetTunings(double Kp, double Ki, double Kd)
-{
-   if (Kp<0 || Ki<0 || Kd<0) return;
+void basic::SetTunings(double Kp, double Ki, double Kd) {
+	if (Kp < 0 || Ki < 0 || Kd < 0)
+		return;
 
-   dispKp = Kp; dispKi = Ki; dispKd = Kd;
+	dispKp = Kp;
+	dispKi = Ki;
+	dispKd = Kd;
 
-   double SampleTimeInSec = ((double)SampleTime)/1000;
-   kp = Kp;
-   ki = Ki * SampleTimeInSec;
-   kd = Kd / SampleTimeInSec;
+	double SampleTimeInSec = ((double) SampleTime) / 1000;
+	kp = Kp;
+	ki = Ki * SampleTimeInSec;
+	kd = Kd / SampleTimeInSec;
 
-  if(controllerDirection == 1)
-   {
-      kp = (0 - kp);
-      ki = (0 - ki);
-      kd = (0 - kd);
-   }
+	if (controllerDirection == 1) {
+		kp = (0 - kp);
+		ki = (0 - ki);
+		kd = (0 - kd);
+	}
 }
 
 /* SetSampleTime(...) *********************************************************
  * sets the period, in Milliseconds, at which the calculation is performed
  ******************************************************************************/
-void pid_new::SetSampleTime(int NewSampleTime)
-{
-   if (NewSampleTime > 0)
-   {
-      double ratio  = (double)NewSampleTime/1000
-                      / (double)SampleTime;
-      ki *= ratio;
-      kd /= ratio;
-      SampleTime = (double)NewSampleTime/1000.0;
-      std::cout << std::to_string(SampleTime) << std::endl;
-   }
+void basic::SetSampleTime(int NewSampleTime) {
+	if (NewSampleTime > 0) {
+		double ratio = (double) NewSampleTime / 1000 / (double) SampleTime;
+		ki *= ratio;
+		kd /= ratio;
+		SampleTime = (double) NewSampleTime / 1000.0;
+		std::cout << std::to_string(SampleTime) << std::endl;
+	}
 }
 
 /* SetOutputLimits(...)****************************************************
@@ -121,20 +125,23 @@ void pid_new::SetSampleTime(int NewSampleTime)
  *  want to clamp it from 0-125.  who knows.  at any rate, that can all be done
  *  here.
  **************************************************************************/
-void pid_new::SetOutputLimits(double Min, double Max)
-{
-   if(Min >= Max) return;
-   outMin = Min;
-   outMax = Max;
+void basic::SetOutputLimits(double Min, double Max) {
+	if (Min >= Max)
+		return;
+	outMin = Min;
+	outMax = Max;
 
-   if(inAuto)
-   {
-	   if(*myOutput > outMax) *myOutput = outMax;
-	   else if(*myOutput < outMin) *myOutput = outMin;
+	if (inAuto) {
+		if (*myOutput > outMax)
+			*myOutput = outMax;
+		else if (*myOutput < outMin)
+			*myOutput = outMin;
 
-	   if(ITerm > outMax) ITerm= outMax;
-	   else if(ITerm < outMin) ITerm= outMin;
-   }
+		if (ITerm > outMax)
+			ITerm = outMax;
+		else if (ITerm < outMin)
+			ITerm = outMin;
+	}
 }
 
 /* SetMode(...)****************************************************************
@@ -142,26 +149,27 @@ void pid_new::SetOutputLimits(double Min, double Max)
  * when the transition from manual to auto occurs, the controller is
  * automatically initialized
  ******************************************************************************/
-void pid_new::SetMode(int Mode)
-{
-    bool newAuto = (Mode == 1);
-    if(newAuto == !inAuto)
-    {  /*we just went from manual to auto*/
-        pid_new::Initialize();
-    }
-    inAuto = newAuto;
+void basic::SetMode(int Mode) {
+	bool newAuto = (Mode == 1);
+	if (newAuto == !inAuto) { /*we just went from manual to auto*/
+		basic::Initialize();
+	}
+	inAuto = newAuto;
 }
 
 /* Initialize()****************************************************************
  *	does all the things that need to happen to ensure a bumpless transfer
  *  from manual to automatic mode.
  ******************************************************************************/
-void pid_new::Initialize()
-{
-   ITerm = *myOutput;
-   lastInput = *myInput;
-   if(ITerm > outMax) ITerm = outMax;
-   else if(ITerm < outMin) ITerm = outMin;
+void basic::Initialize() {
+	// reset lastTime in case thread wasn't run straight after being created.
+	lastTime = std::chrono::high_resolution_clock::now();
+	ITerm = *myOutput;
+	lastInput = *myInput;
+	if (ITerm > outMax)
+		ITerm = outMax;
+	else if (ITerm < outMin)
+		ITerm = outMin;
 }
 
 /* SetControllerDirection(...)*************************************************
@@ -170,15 +178,13 @@ void pid_new::Initialize()
  * know which one, because otherwise we may increase the output when we should
  * be decreasing.  This is called from the constructor.
  ******************************************************************************/
-void pid_new::SetControllerDirection(int Direction)
-{
-   if(inAuto && Direction != controllerDirection)
-   {
-	  kp = (0 - kp);
-      ki = (0 - ki);
-      kd = (0 - kd);
-   }
-   controllerDirection = Direction;
+void basic::SetControllerDirection(int Direction) {
+	if (inAuto && Direction != controllerDirection) {
+		kp = (0 - kp);
+		ki = (0 - ki);
+		kd = (0 - kd);
+	}
+	controllerDirection = Direction;
 }
 
 /* Status Funcions*************************************************************
@@ -186,8 +192,21 @@ void pid_new::SetControllerDirection(int Direction)
  * functions query the internal state of the PID.  they're here for display
  * purposes.  this are the functions the PID Front-end uses for example
  ******************************************************************************/
-double pid_new::GetKp(){ return  dispKp; }
-double pid_new::GetKi(){ return  dispKi;}
-double pid_new::GetKd(){ return  dispKd;}
-int pid_new::GetMode(){ return  inAuto ? 1 : 0;}
-int pid_new::GetDirection(){ return controllerDirection;}
+double basic::GetKp() {
+	return dispKp;
+}
+double basic::GetKi() {
+	return dispKi;
+}
+double basic::GetKd() {
+	return dispKd;
+}
+int basic::GetMode() {
+	return inAuto ? 1 : 0;
+}
+int basic::GetDirection() {
+	return controllerDirection;
+}
+}
+;
+/* namespace PID */
