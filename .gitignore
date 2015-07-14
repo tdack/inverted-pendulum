@@ -29,10 +29,11 @@
 
 Debug/
 Release/
+Debug (Local)/
+Pendulum/
+Websocket/
 .settings/
 Doc/
 src/doxygen_sqlite3.db
-/Debug (Local)/
-Pololu
 /.pydevproject
 *.dtbo
