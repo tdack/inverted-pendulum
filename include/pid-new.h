@@ -39,9 +39,6 @@ public:
 	pid_new(double* Input, double* Output, double* SetPoint, double _kp,
 			double _ki, double _kd, int dir);
 
-	void Compute();
-
-
 	void SetMode(int Mode); // * sets pid-new to either Manual (0) or Auto (non-0)
 
 	void SetOutputLimits(double Min, double Max); 	//clamps the output to a specific range. 0-255 by default, but
@@ -69,12 +66,13 @@ public:
 	int GetMode();			// inside the pid-new.
 	int GetDirection();		//
 
-	void onStartHandler();
+	void onStartHandler();  // called by run() to do the work in the thread
 
-	void stop();
+	void stop();			// stops the thread running.
 
 private:
 	void Initialize();
+	void Compute(); // does the actual PID calculations
 
 	std::atomic<bool> bExit; // flag that thread should quit
 
