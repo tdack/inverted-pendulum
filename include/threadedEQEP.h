@@ -36,12 +36,12 @@ private:
 	std::atomic<bool> bExit;
 	std::atomic<int> position;
 	std::atomic<int> dt_position;
-	std::atomic<float> velocity;
-	float ppr; // Pulse per revolution
+	std::atomic<double> velocity;
+	double ppr; // Pulse per revolution
 
 public:
 
-	threadedEQEP(int eqep_number, float encoder_ppr);
+	threadedEQEP(int eqep_number, double encoder_ppr);
 
 	void onStartHandler();
 
@@ -49,17 +49,19 @@ public:
 
 	int getPosition();
 
-	float getAngle();
+	double getAngle();
 
-	float getAngleDeg();
+	double getAngleDeg();
 
-	float getVelocity();
+	double getVelocity();
 
-	float getVelocityDeg();
+	double getVelocityDeg();
 
 	int getDeltaPosition();
 
 	void setPosition(uint32_t position);
+
+	void setDeg(double deg);
 
 };
 

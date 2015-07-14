@@ -37,7 +37,7 @@
  * @param eqep_number eQEP # to use (0, 1, 2)
  * @param encoder_ppr Pulses per revoultion for encoder
  */
-threadedEQEP::threadedEQEP(int eqep_number, float encoder_ppr)
+threadedEQEP::threadedEQEP(int eqep_number, double encoder_ppr)
 	: bExit(0)
 	, position(0)
 	, dt_position(0)
@@ -67,10 +67,10 @@ void threadedEQEP::onStartHandler() {
 
 	int new_pos = 0;
 	int old_pos = 0;
-	float w = 0.0;
-	float v = 0.0;
+	double w = 0.0;
+	double v = 0.0;
 
-	std::chrono::duration<float, std::deci> dt;
+	std::chrono::duration<double, std::deci> dt;
 	auto start = std::chrono::high_resolution_clock::now();
 	auto end = std::chrono::high_resolution_clock::now();
 	while (!this->bExit.load()) {
@@ -104,19 +104,19 @@ int threadedEQEP::getPosition() {
 	return position.load();
 }
 
-float threadedEQEP::getAngle(){
+double threadedEQEP::getAngle(){
 	return position.load() / ppr * 2 * M_PI;
 }
 
-float threadedEQEP::getAngleDeg(){
+double threadedEQEP::getAngleDeg(){
 	return getAngle() * 180 / M_PI;
 }
 
-float threadedEQEP::getVelocity(){
+double threadedEQEP::getVelocity(){
 	return velocity.load();
 }
 
-float threadedEQEP::getVelocityDeg(){
+double threadedEQEP::getVelocityDeg(){
 	return getVelocity() * 180 / M_PI;
 }
 
@@ -127,4 +127,9 @@ int threadedEQEP::getDeltaPosition(){
 void threadedEQEP::setPosition(uint32_t position) {
 	eqep->setPosition(position);
 	this->position.store(position);
+}
+
+void threadedEQEP::setDeg(double deg){
+	int posn = int(ppr / 360 * deg);
+	setPosition(posn);
 }
