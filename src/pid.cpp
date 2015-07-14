@@ -14,7 +14,6 @@
 #include <pid.h>
 #include <cstdbool>
 #include <iostream>
-#include <atomic>
 
 pid::pid(float _motor_voltage, float _k_p, float _k_i, float _k_d)
 : motor_voltage(_motor_voltage), k_p(_k_p), k_i(_k_i), k_d(_k_d) {

@@ -39,7 +39,7 @@ private:
 	float err_p; 		 // proportional error
 	float err_i; 		 // integral error
 	float err_d; 		 // derivative error
-	float motor_speed;
+	double motor_speed;
 
 	std::atomic<bool> bExit; // flag that thread should quit
 	threadedEQEP *motorEQEP;
