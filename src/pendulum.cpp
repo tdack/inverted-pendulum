@@ -15,7 +15,7 @@
 #include <BlackLib/BlackI2C/BlackI2C.h>
 #include <BlackLib/BlackThread/BlackThread.h>
 #include <pendulum.h>
-#include <pid-new.h>
+#include <pid/basic.h>
 #include <pololu_serial.h>
 #include <rlutil.h>
 #include <sys/stat.h>
@@ -65,16 +65,16 @@ void controller() {
 	}
 
 	// Reset pendulum position to make vertical zero
-//	pendulumEQEP->setPosition(180-abs(pendulumEQEP->getAngleDeg()));
+	pendulumEQEP->setPosition(180-abs(pendulumEQEP->getAngleDeg()));
 
 	// Create a new PID controller
 	double pendulumAngle = 0;
 	double motorSpeed = 0;
-	double setAngle = 180;
-	pid_new *Controller = new pid_new(&pendulumAngle, &motorSpeed, &setAngle, 3.0, 0.75, 1.5, 0);
+	double setAngle = 0;
+	PID::basic *Controller = new PID::basic(&pendulumAngle, &motorSpeed, &setAngle, 6.0, 0.75, 1.5, 1);
 
 	Controller->SetMode(1); // Automatic
-	Controller->SetOutputLimits(-512.0,512.0);
+	Controller->SetOutputLimits(-768.0,768.0);
 	Controller->SetSampleTime(25); // sample time in milliseconds
 
 	// Create a Simple Motor Controller object
@@ -83,7 +83,7 @@ void controller() {
 	SMC->SetTargetSpeed(0);
 	Controller->run(); // start the controller thread
 
-	// Let the thread run for a bit
+	// Let the threads run for a bit
 	fx.setCursor(6,8);
 	fx.write("PID Running ....  ");
 	int count = 0;
@@ -91,7 +91,11 @@ void controller() {
 	while (count < 500)  {
 		pendulumAngle = pendulumEQEP->getAngleDeg();
 		setSpeed = ( motorSpeed > 0 ? 1 : -1) * 256 + (int)motorSpeed;
-		SMC->SetTargetSpeed(setSpeed);
+//		SMC->SetTargetSpeed(setSpeed);
+		if (abs(pendulumAngle) > 45) {
+			SMC->SetTargetSpeed(0);
+			break;
+		}
 		count++;
 		fx.setCursor(18,24);
 		fx.write(to_string(pendulumEQEP->getAngleDeg()).c_str());
@@ -101,6 +105,7 @@ void controller() {
 		fx.write(to_string(setSpeed).c_str());
 		fx.setCursor(110,54);
 		fx.write(to_string(count).c_str());
+		fx.write("  ");
 		fx.refreshScreen();
 	}
 	SMC->SetTargetSpeed(0);
