@@ -144,7 +144,7 @@ namespace Pololu {
 	  return 0;
 	}
 
-	int SMC::SetTargetSpeed(float speed) {
+	int SMC::SetTargetSpeed(double speed) {
 		return SetTargetSpeed( (int)(SMC_MAX_SPEED * speed/100) );
 	}
 } /* Pololu */

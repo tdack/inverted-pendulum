@@ -132,7 +132,7 @@ public:
 	 * @return 0 if successful, SERIAL_ERROR if there was an error sending.
 	 **/
 	int SetTargetSpeed(int speed);
-	int SetTargetSpeed(float speed);
+	int SetTargetSpeed(double speed);
 }; /* SMC */
 
 } /* Pololu */
