@@ -15,7 +15,7 @@
 #include <BlackLib/BlackI2C/BlackI2C.h>
 #include <BlackLib/BlackThread/BlackThread.h>
 #include <pendulum.h>
-#include <pid.h>
+#include <pid-new.h>
 #include <pololu_serial.h>
 #include <rlutil.h>
 #include <sys/stat.h>
@@ -50,10 +50,11 @@ void controller() {
 	fx.setTextColor(SSD1306::RGB::black, SSD1306::RGB::white);
 	fx.setTextSize(1);
 	fx.setCursor(0,0);
-	fx.write("\n Raise the pendulum\n\n P:\n M:");
+	fx.write("\n Raise the pendulum\n\n P:\n M:\n S:");
 	fx.drawRoundRect(0,0,fx.getWidth(),fx.getHeight(), 8, SSD1306::RGB::black);
-	// Start the thread running
+	// Start the threads running
 	pendulumEQEP->run();
+	motorEQEP->run();
 
 	// Wait until the pendulum is @ 180 +-1 deg
 	// Assumes pendulum starts hanging vertically down
@@ -63,25 +64,46 @@ void controller() {
 		fx.refreshScreen();
 	}
 
-	// Create a new PID controller thread
-	pid *Controller = new pid(11.7, 25, 10, 30, pendulumEQEP, motorEQEP);
+	// Reset pendulum position to make vertical zero
+//	pendulumEQEP->setPosition(180-abs(pendulumEQEP->getAngleDeg()));
 
-	Controller->run();
+	// Create a new PID controller
+	double pendulumAngle = 0;
+	double motorSpeed = 0;
+	double setAngle = 180;
+	pid_new *Controller = new pid_new(&pendulumAngle, &motorSpeed, &setAngle, 3.0, 0.75, 1.5, 0);
+
+	Controller->SetMode(1); // Automatic
+	Controller->SetOutputLimits(-512.0,512.0);
+	Controller->SetSampleTime(25); // sample time in milliseconds
+
+	// Create a Simple Motor Controller object
+	Pololu::SMC *SMC = new Pololu::SMC(POLOLU_TTY);
+
+	SMC->SetTargetSpeed(0);
+	Controller->run(); // start the controller thread
 
 	// Let the thread run for a bit
 	fx.setCursor(6,8);
 	fx.write("PID Running ....  ");
 	int count = 0;
-	while (count < 10)  {
+	int setSpeed;
+	while (count < 500)  {
+		pendulumAngle = pendulumEQEP->getAngleDeg();
+		setSpeed = ( motorSpeed > 0 ? 1 : -1) * 256 + (int)motorSpeed;
+		SMC->SetTargetSpeed(setSpeed);
 		count++;
 		fx.setCursor(18,24);
 		fx.write(to_string(pendulumEQEP->getAngleDeg()).c_str());
 		fx.setCursor(18,32);
 		fx.write(to_string(motorEQEP->getAngleDeg()).c_str());
+		fx.setCursor(18,40);
+		fx.write(to_string(setSpeed).c_str());
 		fx.setCursor(110,54);
 		fx.write(to_string(count).c_str());
 		fx.refreshScreen();
 	}
+	SMC->SetTargetSpeed(0);
 
 	Controller->stop();
 	pendulumEQEP->stop();
