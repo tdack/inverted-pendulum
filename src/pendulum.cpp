@@ -16,7 +16,7 @@
 #include <BlackLib/BlackThread/BlackThread.h>
 #include <pendulum.h>
 #include <pid/basic.h>
-#include <pololu_serial.h>
+#include <pololuSMC.h>
 #include <rlutil.h>
 #include <sys/stat.h>
 #include <SSD1306/gfx.h>

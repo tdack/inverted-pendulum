@@ -21,8 +21,8 @@
  *
  **/
 
-#ifndef INCLUDE_POLOLU_SERIAL_H_
-#define INCLUDE_POLOLU_SERIAL_H_
+#ifndef INCLUDE_POLOLUSMC_H_
+#define INCLUDE_POLOLUSMC_H_
 
 #include <atomic>
 
@@ -137,4 +137,4 @@ public:
 
 } /* Pololu */
 
-#endif /* INCLUDE_POLOLU_SERIAL_H_ */
+#endif /* INCLUDE_POLOLUSMC_H_ */

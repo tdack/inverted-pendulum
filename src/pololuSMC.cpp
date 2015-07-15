@@ -22,7 +22,7 @@
  **/
 
 #include <fcntl.h>
-#include <pololu_serial.h>
+#include <pololuSMC.h>
 #include <termios.h> // POSIX terminal control definitions
 #include <unistd.h>
 #include <cstdio>

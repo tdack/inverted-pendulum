@@ -12,7 +12,7 @@
 
 #include <pendulum.h>
 #include <pid/model1.h>
-#include <pololu_serial.h>
+#include <pololuSMC.h>
 #include <threadedEQEP.h>
 #include <iostream>
 
