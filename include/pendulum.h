@@ -24,6 +24,30 @@
 #ifndef INCLUDE_PENDULUM_H_
 #define INCLUDE_PENDULUM_H_
 
+#include <BlackLib/BlackDef.h>
+#include <BlackLib/BlackGPIO/BlackGPIO.h>
+#include <BlackLib/BlackI2C/BlackI2C.h>
+#include <BlackLib/BlackThread/BlackThread.h>
+
+#include <threadedEQEP.h>
+
+#include <pololuSMC.h>
+
+#include <SSD1306/gfx.h>
+#include <SSD1306/rgb_driver.h>
+#include <SSD1306/ssd1306.h>
+
+
+#include <rlutil.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <cmath>
+#include <cstdbool>
+#include <iomanip>
+#include <iostream>
+#include <string>
+#include <vector>
+
 
 /**
  * eQEP0 - Motor
@@ -44,6 +68,13 @@ const double MOTOR_TEETH = 40.0;	// * Number of teeth on motor pulley
 const double ENCODER_TEETH = 12.0;	// * Number of teeth on encoder pulley
 const double ENCODER_PPR = 2400.0;	// * Encoder pulses per revolution (x4 mode)
 const double MOTOR_PPR = 1600.0 * MOTOR_TEETH / ENCODER_TEETH;
+/**
+ * /dev/ttyO2 - serial comms to SMC
+ *
+ * P9_21 = Tx
+ * P9_22 = Rx
+ *
+ */
 const char* const POLOLU_TTY = "/dev/ttyO2"; // * tty Pololu motor controller is on
 
 #endif /* INCLUDE_PENDULUM_H_ */
