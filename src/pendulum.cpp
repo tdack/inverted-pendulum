@@ -275,7 +275,7 @@ void controller() {
 	threadedEQEP *pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, ENCODER_PPR);
 	threadedEQEP *motorEQEP = new threadedEQEP(MOTOR_EQEP, MOTOR_PPR);
 	// Create a new PID controller thread
-	pid *Controller = new pid(11.7, 10, 8, 40, pendulumEQEP, motorEQEP);
+	pid *Controller = new pid(11.7, 8, 6, 1.9, pendulumEQEP, motorEQEP);
 
 	// set-up a HTTPServer instance
 	ServerSocket svs(9980);
@@ -306,17 +306,25 @@ void controller() {
 		fx.refreshScreen();
 	}
 
+	// Reset pendulum position to make vertical zero
+	pendulumEQEP->setPosition(180-abs(pendulumEQEP->getAngleDeg()));
+
 	Controller->run();
 	srv.start();
 
-	// Let the thread run for a bit
 	fx.setCursor(6,8);
 	fx.write("PID Running ....  ");
 	int count = 0;
-	while (count < 500)  {
+	double angle;
+	while (count < 500)  { 	// Let the thread run for a bit
 		count++;
+		angle = pendulumEQEP->getAngleDeg();
+		if (abs(angle) > 25) {
+			// Jump out of loop if pendulum goes too far from vertical
+			break;
+		}
 		fx.setCursor(18,24);
-		fx.write(to_string(pendulumEQEP->getAngleDeg()).c_str());
+		fx.write(to_string(angle).c_str());
 		fx.setCursor(18,32);
 		fx.write(to_string(motorEQEP->getAngleDeg()).c_str());
 		fx.setCursor(110,54);
