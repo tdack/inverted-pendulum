@@ -128,3 +128,8 @@ void threadedEQEP::setPosition(uint32_t position) {
 	eqep->setPosition(position);
 	this->position.store(position);
 }
+
+void threadedEQEP::setDeg(double deg){
+	int posn = int(ppr / 360 * deg);
+	setPosition(posn);
+}

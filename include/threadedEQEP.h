@@ -61,6 +61,8 @@ public:
 
 	void setPosition(uint32_t position);
 
+	void setDeg(double deg);
+
 };
 
 #endif /* INCLUDE_threadedEQEP_H_ */
