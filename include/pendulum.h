@@ -56,8 +56,8 @@
 
 const double MOTOR_TEETH = 40.0;	// * Number of teeth on motor pulley
 const double ENCODER_TEETH = 12.0;	// * Number of teeth on encoder pulley
-const double ENCODER_PPR = 2400.0;	// * Encoder pulses per revolution (x4 mode)
 const double MOTOR_PPR = 1600.0 * MOTOR_TEETH / ENCODER_TEETH;
+const double PENDULUM_PPR = 1600.0;	// * pulses per revolution (x4 mode)
 const char* const POLOLU_TTY = "/dev/ttyO2"; // * tty Pololu motor controller is on
 
 #endif /* INCLUDE_PENDULUM_H_ */
