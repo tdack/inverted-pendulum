@@ -61,26 +61,9 @@ using Poco::Util::OptionSet;
 using Poco::Util::HelpFormatter;
 using namespace Poco::JSON;
 
-string GetValue(Object::Ptr aoJsonObject, const char *aszKey) {
-    Poco::Dynamic::Var loVariable;
-    string lsReturn;
-    string lsKey(aszKey);
-
-    // Get the member Variable
-    //
-    loVariable = aoJsonObject->get(lsKey);
-
-    // Get the Value from the Variable
-    //
-    lsReturn = loVariable.convert<std::string>();
-
-    return lsReturn;
-}
-
 
 class PageRequestHandler: public HTTPRequestHandler
-	/// Return a HTML document with some JavaScript creating
-	/// a WebSocket connection.
+	/// Return a HTML document
 {
 public:
 	void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response)
@@ -99,7 +82,6 @@ public:
 		ostr << "</html>";
 	}
 };
-
 
 class WebSocketRequestHandler: public HTTPRequestHandler
 	/// Handle a WebSocket connection.
@@ -126,7 +108,6 @@ public:
 			{
 				n = ws.receiveFrame(buffer, sizeof(buffer), flags);
 
-//				app.logger().information(Poco::format("Frame received (length=%d, flags=0x%x).", n, unsigned(flags)));
 				std::string rxJSON(buffer, n); // convert received frame into a string
 				Poco::JSON::Parser Parser;
 				Poco::Dynamic::Var result = Parser.parse(rxJSON); // parse JSON
@@ -137,7 +118,6 @@ public:
 				std::ostringstream ossRx;
 				std::ostringstream ossTx;
 				obj->stringify(ossRx, 0);
-//				app.logger().information(Poco::format("Rx: %s", ossRx.str()));
 				if (obj->has("action")) {
 					action = obj->getValue<std::string>("action");
 					param = "";
@@ -181,7 +161,6 @@ public:
 				obj->remove("action");
 				obj->stringify(ossTx,0);
 				out = ossTx.str();
-//				app.logger().information(Poco::format("Tx: %s", ossTx.str()));
 				ws.sendFrame(out.data(), out.size(), flags);
 			}
 			while (n > 0 || (flags & WebSocket::FRAME_OP_BITMASK) != WebSocket::FRAME_OP_CLOSE);
@@ -219,20 +198,6 @@ public:
 
 	HTTPRequestHandler* createRequestHandler(const HTTPServerRequest& request)
 	{
-//		cout << "Request from "
-//			+ request.clientAddress().toString()
-//			+ ": "
-//			+ request.getMethod()
-//			+ " "
-//			+ request.getURI()
-//			+ " "
-//			+ request.getVersion() << endl;
-//
-//		for (HTTPServerRequest::ConstIterator it = request.begin(); it != request.end(); ++it)
-//		{
-//			cout << it->first + ": " + it->second << endl;
-//		}
-
 		if(request.find("Upgrade") != request.end() && Poco::icompare(request["Upgrade"], "websocket") == 0)
 			return new WebSocketRequestHandler(eqep, controller);
 		else
@@ -247,13 +212,13 @@ void controller(double kp, double ki, double kd) {
 	// Create new EQEPs object to monitor the pendulum & motor position
 	threadedEQEP *pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, PENDULUM_PPR);
 	threadedEQEP *motorEQEP = new threadedEQEP(MOTOR_EQEP, MOTOR_PPR);
+
 	// Create a new PID controller thread
 	pid *Controller = new pid(11.7, kp, ki, kd, pendulumEQEP, motorEQEP);
 
 	// set-up a HTTPServer instance
 	ServerSocket svs(9980);
 	HTTPServer srv(new RequestHandlerFactory(pendulumEQEP, Controller), svs, new HTTPServerParams);
-	// start the HTTPServer
 
 	// Initialise display
 	BlackLib::BlackI2C *I2C_1 = new BlackLib::BlackI2C(BlackLib::I2C_1, 0x3c);
@@ -268,12 +233,13 @@ void controller(double kp, double ki, double kd) {
 	fx.setCursor(0,0);
 	fx.write("\n Raise the pendulum\n\n P:\n M:");
 	fx.drawRoundRect(0,0,fx.getWidth(),fx.getHeight(), 8, SSD1306::RGB::black);
+
 	// Start the thread running
 	pendulumEQEP->setDeg(180.0);
 	pendulumEQEP->run();
 
-	// Wait until the pendulum is @ 180 +-1 deg
-	// Assumes pendulum starts hanging vertically down
+	// Wait until the pendulum is @ 0 +/-1 deg
+	// Assumes pendulum starts hanging vertically down @ 180 deg
 	double angle;
 	do {
 		angle = abs(pendulumEQEP->getAngleDeg());
@@ -283,10 +249,11 @@ void controller(double kp, double ki, double kd) {
 		fx.refreshScreen();
 	} while (angle < -1 || angle > 1);
 
-	// Reset pendulum position to make vertical zero
-//	pendulumEQEP->setPosition(180-abs(pendulumEQEP->getAngleDeg()));
 
+	// Start the PID Controller thread running
 	Controller->run();
+
+	// Start the HTTP server
 	srv.start();
 
 	fx.setCursor(6,8);
@@ -323,7 +290,6 @@ void controller(double kp, double ki, double kd) {
 	return;
 }
 
-
 bool checkOverlays(){
 	std::vector<std::string> files = {
 			POLOLU_TTY,								   // tty device path
@@ -352,8 +318,10 @@ int main(int argc, char const *argv[]) {
 
 	if (!checkOverlays()) {
 		rlutil::setColor(rlutil::WHITE);
-		cout << "Are the overlays loaded?" << std::endl;
-		return -1;
+		cout << "Loading Overlays ..." << std::endl;
+		if (system("./load_overlays.sh") == -1) {
+			return -1;
+		}
 	}
 
 	if (args.size() == 3) {
