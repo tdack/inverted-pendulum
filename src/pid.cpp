@@ -62,7 +62,7 @@ void pid::onStartHandler() {
 		err_p = 0 - pendulumEQEP->getAngle();
 		err_d = 0 - pendulumEQEP->getVelocity();
 		err_i = err_p + err_d;
-		u = ((k_p * err_p) + (k_d * err_d) + (k_i * err_i));
+		u = -((k_p * err_p) + (k_d * err_d) + (k_i * err_i));
 		motor_speed = 100 / motor_voltage * u; // Calculate speed as a percentage
 
 		if (motor_speed >= 100) {
