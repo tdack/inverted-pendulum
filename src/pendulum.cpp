@@ -15,7 +15,7 @@
 
 using namespace std;
 
-void controller() {
+void controller(double kp, double ki, double kd, int dir) {
 
 	// Create new EQEPs object to monitor the pendulum & motor position
 	threadedEQEP *pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, ENCODER_PPR);
@@ -31,9 +31,13 @@ void controller() {
 	fx.clearScreen();
 	fx.setTextColor(SSD1306::RGB::black, SSD1306::RGB::white);
 	fx.setTextSize(1);
-	fx.setCursor(0,0);
-	fx.write("\n Raise the pendulum\n\n P:\n M:\n S:");
-	fx.drawRoundRect(0,0,fx.getWidth(),fx.getHeight(), 8, SSD1306::RGB::black);
+	fx.setCursor(0,4);
+	fx.write(" Raise the pendulum");
+	fx.setCursor(0, 24);
+	fx.write(" P:\n M:\n S:");
+	fx.drawRoundRect(0,0,fx.getWidth(), 16, 4, SSD1306::RGB::black);
+	std::cout << "Raise the pendulum" << std::endl;
+
 	// Start the threads running
 	pendulumEQEP->run();
 	motorEQEP->run();
@@ -53,10 +57,10 @@ void controller() {
 	double pendulumAngle = 0;
 	double motorSpeed = 0;
 	double setAngle = 0;
-	PID::basic *Controller = new PID::basic(&pendulumAngle, &motorSpeed, &setAngle, 6.0, 0.75, 1.5, 1);
+	PID::basic *Controller = new PID::basic(&pendulumAngle, &motorSpeed, &setAngle, kp, ki, kd, dir);
 
 	Controller->SetMode(1); // Automatic
-	Controller->SetOutputLimits(-768.0,768.0);
+	Controller->SetOutputLimits(-3200.0,3200.0);
 	Controller->SetSampleTime(25); // sample time in milliseconds
 
 	// Create a Simple Motor Controller object
@@ -66,17 +70,19 @@ void controller() {
 	Controller->run(); // start the controller thread
 
 	// Let the threads run for a bit
-	fx.setCursor(6,8);
+	fx.setCursor(0,0);
 	fx.write("PID Running ....  ");
+	std::cout << "PID Running ...." << std::endl;
 	int count = 0;
 	int setSpeed;
 	while (count < 500)  {
 		pendulumAngle = pendulumEQEP->getAngleDeg();
-		setSpeed = ( motorSpeed > 0 ? 1 : -1) * 256 + (int)motorSpeed;
-//		SMC->SetTargetSpeed(setSpeed);
-		if (abs(pendulumAngle) > 45) {
+		setSpeed = ( motorSpeed > 0 ? 1 : -1) * 160 + (int)motorSpeed;
+		if (abs(pendulumAngle) > 25) {
+			// stop the motor if we have deviated too far from vertical
 			SMC->SetTargetSpeed(0);
-			break;
+		} else {
+			SMC->SetTargetSpeed(setSpeed);
 		}
 		count++;
 		fx.setCursor(18,24);
@@ -194,15 +200,25 @@ void testOLED() {
 }
 
 int main(int argc, char const *argv[]) {
+	std::vector<std::string> args(argv +1, argv + argc);
 
-	if (!checkOverlays()) {
+	std::cout << "Checking for overlays ... " << std::flush;
+
+	if (checkOverlays()) {
+		cout << "OK" << std::endl;
+	} else {
 		rlutil::setColor(rlutil::WHITE);
-		cout << "Are the overlays loaded?" << std::endl;
-		return -1;
+		cout << "Loading Overlays ..." << std::endl;
+		if (system("./load_overlays.sh") == -1) {
+			return -1;
+		}
 	}
 
-//	testOLED();
-//	motorTest();
-	controller();
+	if (args.size() == 4) {
+		controller(atof(args[0].c_str()), atof(args[1].c_str()), atof(args[2].c_str()), atoi(args[3].c_str()));
+	} else {
+		controller(1,0,0, 0);
+	}
+
 	return 0;
 }
