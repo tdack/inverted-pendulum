@@ -91,37 +91,10 @@ public:
 		ostr << "<html>";
 		ostr << "<head>";
 		ostr << "<title>WebSocketServer</title>";
-		ostr << "<script type=\"text/javascript\">";
-		ostr << "function WebSocketTest()";
-		ostr << "{";
-		ostr << "  if (\"WebSocket\" in window)";
-		ostr << "  {";
-		ostr << "    var ws = new WebSocket(\"ws://" << request.serverAddress().toString() << "/ws\");";
-		ostr << "    ws.onopen = function()";
-		ostr << "      {";
-		ostr << "        ws.send(\"Hello, world!\");";
-		ostr << "      };";
-		ostr << "    ws.onmessage = function(evt)";
-		ostr << "      { ";
-		ostr << "        var msg = evt.data;";
-		ostr << "        alert(\"Message received: \" + msg);";
-		ostr << "        ws.close();";
-		ostr << "      };";
-		ostr << "    ws.onclose = function()";
-		ostr << "      { ";
-		ostr << "        alert(\"WebSocket closed.\");";
-		ostr << "      };";
-		ostr << "  }";
-		ostr << "  else";
-		ostr << "  {";
-		ostr << "     alert(\"This browser does not support WebSockets.\");";
-		ostr << "  }";
-		ostr << "}";
-		ostr << "</script>";
 		ostr << "</head>";
 		ostr << "<body>";
 		ostr << "  <h1>WebSocket Server</h1>";
-		ostr << "  <p><a href=\"javascript:WebSocketTest()\">Run WebSocket Script</a></p>";
+		ostr << "  <p>Connect client application using web socket protocol</p>";
 		ostr << "</body>";
 		ostr << "</html>";
 	}
@@ -141,7 +114,7 @@ public:
 		try
 		{
 			WebSocket ws(request, response);
-			cout << "WebSocket connection established." << endl;
+			cout << "WebSocket connection established with " << request.clientAddress().toString() << endl;
 			char buffer[1024];
 			int flags;
 			int n;
@@ -189,7 +162,7 @@ public:
 						if (obj->has("value")) {
 							val = obj->getValue<float>("value");
 						} else {
-							val = -1;
+							val = 0;
 						}
 						if (param == "kp") {
 							controller->setKP(val);
@@ -246,19 +219,19 @@ public:
 
 	HTTPRequestHandler* createRequestHandler(const HTTPServerRequest& request)
 	{
-		cout << "Request from "
-			+ request.clientAddress().toString()
-			+ ": "
-			+ request.getMethod()
-			+ " "
-			+ request.getURI()
-			+ " "
-			+ request.getVersion() << endl;
-
-		for (HTTPServerRequest::ConstIterator it = request.begin(); it != request.end(); ++it)
-		{
-			cout << it->first + ": " + it->second << endl;
-		}
+//		cout << "Request from "
+//			+ request.clientAddress().toString()
+//			+ ": "
+//			+ request.getMethod()
+//			+ " "
+//			+ request.getURI()
+//			+ " "
+//			+ request.getVersion() << endl;
+//
+//		for (HTTPServerRequest::ConstIterator it = request.begin(); it != request.end(); ++it)
+//		{
+//			cout << it->first + ": " + it->second << endl;
+//		}
 
 		if(request.find("Upgrade") != request.end() && Poco::icompare(request["Upgrade"], "websocket") == 0)
 			return new WebSocketRequestHandler(eqep, controller);
@@ -270,12 +243,12 @@ private:
 	pid* controller;
 };
 
-void controller() {
+void controller(double kp, double ki, double kd) {
 	// Create new EQEPs object to monitor the pendulum & motor position
-	threadedEQEP *pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, ENCODER_PPR);
+	threadedEQEP *pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, PENDULUM_PPR);
 	threadedEQEP *motorEQEP = new threadedEQEP(MOTOR_EQEP, MOTOR_PPR);
 	// Create a new PID controller thread
-	pid *Controller = new pid(11.7, 8, 6, 1.9, pendulumEQEP, motorEQEP);
+	pid *Controller = new pid(11.7, kp, ki, kd, pendulumEQEP, motorEQEP);
 
 	// set-up a HTTPServer instance
 	ServerSocket svs(9980);
@@ -296,18 +269,22 @@ void controller() {
 	fx.write("\n Raise the pendulum\n\n P:\n M:");
 	fx.drawRoundRect(0,0,fx.getWidth(),fx.getHeight(), 8, SSD1306::RGB::black);
 	// Start the thread running
+	pendulumEQEP->setDeg(180.0);
 	pendulumEQEP->run();
 
 	// Wait until the pendulum is @ 180 +-1 deg
 	// Assumes pendulum starts hanging vertically down
-	while (abs(pendulumEQEP->getAngleDeg()) < 179 || abs(pendulumEQEP->getAngleDeg() > 181))  {
+	double angle;
+	do {
+		angle = abs(pendulumEQEP->getAngleDeg());
+		angle = angle >= 360 ? angle - 360 : angle;
 		fx.setCursor(18, 24);
 		fx.write(to_string(pendulumEQEP->getAngleDeg()).c_str());
 		fx.refreshScreen();
-	}
+	} while (angle < -1 || angle > 1);
 
 	// Reset pendulum position to make vertical zero
-	pendulumEQEP->setPosition(180-abs(pendulumEQEP->getAngleDeg()));
+//	pendulumEQEP->setPosition(180-abs(pendulumEQEP->getAngleDeg()));
 
 	Controller->run();
 	srv.start();
@@ -315,12 +292,12 @@ void controller() {
 	fx.setCursor(6,8);
 	fx.write("PID Running ....  ");
 	int count = 0;
-	double angle;
 	while (count < 500)  { 	// Let the thread run for a bit
 		count++;
 		angle = pendulumEQEP->getAngleDeg();
 		if (abs(angle) > 25) {
 			// Jump out of loop if pendulum goes too far from vertical
+			std::cout << " Bailing out!!" << std::endl;
 			break;
 		}
 		fx.setCursor(18,24);
@@ -371,13 +348,19 @@ bool checkOverlays(){
 
 int main(int argc, char const *argv[]) {
 
+	std::vector<std::string> args(argv +1, argv + argc);
+
 	if (!checkOverlays()) {
 		rlutil::setColor(rlutil::WHITE);
 		cout << "Are the overlays loaded?" << std::endl;
 		return -1;
 	}
 
-	controller();
+	if (args.size() == 3) {
+		controller(atof(args[0].c_str()), atof(args[1].c_str()), atof(args[2].c_str()));
+	} else {
+		controller(0,0,0);
+	}
 
 	cout << "Done!" << endl;
 	return 0;
