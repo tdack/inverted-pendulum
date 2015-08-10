@@ -27,13 +27,12 @@
 *.out
 *.app
 
-Debug/
-Release/
-Debug (Local)/
-Pendulum/
-Websocket/
 .settings/
 Doc/
 src/doxygen_sqlite3.db
 /.pydevproject
 *.dtbo
+/1. */
+/2. */
+/4. */
+/5. */
