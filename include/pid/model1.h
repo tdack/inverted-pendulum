@@ -28,6 +28,7 @@
 #include <BlackLib/BlackThread/BlackThread.h>
 #include <atomic>
 #include <cstdbool>
+#include <chrono>
 
 class threadedEQEP;
 
@@ -35,37 +36,87 @@ namespace PID {
 
 class model1 : public BlackLib::BlackThread {
 
-private:
-	float motor_voltage; // input voltage to motor controller
-	float k_p; 			 // proportional factor
-	float k_i; 			 // integral factor
-	float k_d; 			 // derivative factor
-	float err_p; 		 // proportional error
-	float err_i; 		 // integral error
-	float err_d; 		 // derivative error
-	double motor_speed;
-
-	std::atomic<bool> bExit; // flag that thread should quit
-	threadedEQEP *motorEQEP;
-	threadedEQEP *pendulumEQEP;
-
 public:
 
 	/**
 	 * Proportional-Integral-Derivative controller for inverted pendulum
 	 *
-	 * @param motor_voltage maxium voltage used to drive motor at full speed
-	 * @param k_p		proportional control constant
-	 * @param k_i		integral control constant
-	 * @param k_d		derivative control constant
+	 *	Uses pendulum angle and velocity
 	 */
-	model1(float motor_voltage, float k_p, float k_i, float k_d);
+	model1(double* Angle, double* Velocity, double* Output, double* SetPoint, double _kp,	double _ki, double _kd);
 
-	model1(float _motor_voltage, float _k_p, float _k_i, float _k_d, threadedEQEP *_pendulumEQEP, threadedEQEP *_motorEQEP);
+	void SetMode(int Mode); // * sets pid-new to either Manual (0) or Auto (non-0)
 
-	void onStartHandler();
+	void SetOutputLimits(double Min, double Max); //clamps the output to a specific range. 0-255 by default, but
+												  //it's likely the user will want to change this depending on
+												  //the application
 
-	void stop();
+												  //available but not commonly used functions ********************************************************
+	void SetTunings(double kp, double ki, // * While most users will set the tunings once in the
+			double kd); //   constructor, this function gives the user the option
+						//   of changing tunings during runtime for Adaptive control
+
+	void SetControllerDirection(int);// * Sets the Direction, or "Action" of the controller. DIRECT
+									 //   means the output will increase when error is positive. REVERSE
+									 //   means the opposite.  it's very unlikely that this will be needed
+									 //   once it is set in the constructor.
+
+	void SetSampleTime(int); // * sets the frequency, in Milliseconds, with which
+							 //   the pid-new calculation is performed.  default is 100
+
+	/* Status Funcions*************************************************************
+	 * Just because you set the Kp=-1 doesn't mean it actually happened.  these
+	 * functions query the internal state of the PID.  they're here for display
+	 * purposes.  this are the functions the PID Front-end uses for example
+	 ******************************************************************************/
+	inline double GetKp() {
+		return dispKp;
+	}
+	inline double GetKi() {
+		return dispKi;
+	}
+	inline double GetKd() {
+		return dispKd;
+	}
+	inline int GetMode() {
+		return inAuto ? 1 : 0;
+	}
+	inline int GetDirection() {
+		return controllerDirection;
+	}
+
+	void onStartHandler();  // called by run() to do the work in the thread
+
+	void stop();			// stops the thread running.
+
+private:
+	void Initialize();
+	void Compute(); // does the actual PID calculations
+
+	std::atomic<bool> bExit; 	// flag to tell thread to quit
+
+	double dispKp;				// * we'll hold on to the tuning parameters in user-entered
+	double dispKi;				//   format for display purposes
+	double dispKd;				//
+
+	double kp;                  // * (P)roportional Tuning Parameter
+	double ki;                  // * (I)ntegral Tuning Parameter
+	double kd;                  // * (D)erivative Tuning Parameter
+
+	int controllerDirection;
+
+	double *myAngle;  // * Pointers to the Input, Output, and Setpoint variables
+	double *myVelocity;
+	double *myOutput; //   This creates a hard link between the variables and the
+	double *mySetPoint; //   pid, freeing the user from having to constantly tell us
+						//   what these values are.  with pointers we'll just know.
+
+	std::chrono::high_resolution_clock::time_point lastTime;
+	double ITerm, lastInput;
+
+	bool inAuto;
+	double SampleTime;
+	double outMin, outMax;
 };
 }; /* namespace PID*/
 #endif /* INCLUDE_PID_MODEL1_H_ */

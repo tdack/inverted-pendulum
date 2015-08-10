@@ -16,70 +16,163 @@
 #include <threadedEQEP.h>
 #include <iostream>
 
+
 namespace PID {
 
-model1::model1(float _motor_voltage, float _k_p, float _k_i, float _k_d)
-: motor_voltage(_motor_voltage), k_p(_k_p), k_i(_k_i), k_d(_k_d) {
-	err_p = 0.0; // proportional error
-	err_i = 0.0; // integral error
-	err_d = 0.0; // derivative error
-	motor_speed = 0.0;
-	pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, ENCODER_PPR);
-	motorEQEP = new threadedEQEP(MOTOR_EQEP, MOTOR_PPR);
+model1::model1(double* Angle, double* Velocity, double* Output, double* SetPoint, double _kp,	double _ki, double _kd) :
+		myAngle(Angle), myVelocity(Velocity), myOutput(Output), mySetPoint(SetPoint), inAuto(false), SampleTime(0.1) {
 	bExit.store(false);
+	SetOutputLimits(0, 100);
+	SetTunings(_kp, _ki, _kd);
+	lastTime = std::chrono::high_resolution_clock::now();
 }
 
-model1::model1(float _motor_voltage, float _k_p, float _k_i, float _k_d, threadedEQEP *_pendulumEQEP, threadedEQEP *_motorEQEP)
-: motor_voltage(_motor_voltage), k_p(_k_p), k_i(_k_i), k_d(_k_d),
-  pendulumEQEP(_pendulumEQEP),
-  motorEQEP(_motorEQEP) {
-	err_p = 0.0; // proportional error
-	err_i = 0.0; // integral error
-	err_d = 0.0; // derivative error
-	motor_speed = 0.0;
-	bExit.store(false);
-}
+void model1::Compute() {
+	if (!inAuto)
+		return;
+	std::chrono::duration<float, std::deci> timeChange;
+	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+	timeChange = (now - lastTime);
+	if (timeChange.count() >= SampleTime) {
+		/*Compute all the working error variables*/
+		double u = 0.0;
 
+		double err_p = 0 - *myAngle;
+		double err_d = 0 - *myVelocity;
+		double err_i = err_p + err_d;
+		u = -((kp * err_p) + (kd * err_d) + (ki * err_i));
+		double output = outMax / 11.7 * u;
+
+		if (output > outMax) {
+			output = outMax;
+		} else if (output < outMin) {
+			output = outMin;
+		}
+		*myOutput = output;
+
+//		std::cout << timeChange.count() << "\t u: " << u << std::endl;
+
+		lastTime = now;
+	}
+}
 
 void model1::onStartHandler() {
-
-	float u = 0.0;
-
-	// Start threads to read eQEPs
-	motorEQEP->run();
-	motorEQEP->setPosition(0);
-	pendulumEQEP->run();
-	pendulumEQEP->setPosition(0); //start at zero
-
-	// Create a Simple Motor Controller object
-	Pololu::SMC *SMC = new Pololu::SMC(POLOLU_TTY);
-
-	SMC->SetTargetSpeed(0);
-	
-	std::cout << "Starting PID control loop ..." << std::endl;
+	Initialize();
 	while (!bExit.load()) {
+		this->Compute();
 		yield();
-		err_p = 0 + pendulumEQEP->getAngle();
-		err_d = 0 + pendulumEQEP->getVelocity();
-		err_i = err_p + err_d;
-		u = -((k_p * err_p) + (k_d * err_d) + (k_i * err_i));
-		motor_speed = 100 / motor_voltage * u; // Calculate speed as a percentage
-
-		if (motor_speed >= 100) {
-			motor_speed = 100;
-		} else if (motor_speed <= -100) {
-			motor_speed= -100;
-		}
-		SMC->SetTargetSpeed(motor_speed);
-//		std::cout << "\rp: " << err_p << " \ti: " << err_i << " \td:" << err_d << " \tu:" << u << " \tmotor_speed:" << motor_speed << std::endl;
-		usleep(20); // Sleep a bit, give motor time to respond to changes
 	}
-	SMC->SetTargetSpeed(0);
 }
 
 void model1::stop() {
-	motorEQEP->stop();
-	pendulumEQEP->stop();
 	bExit.store(true);
-};
+}
+/* SetTunings(...)*************************************************************
+ * This function allows the controller's dynamic performance to be adjusted.
+ * it's called automatically from the constructor, but tunings can also
+ * be adjusted on the fly during normal operation
+ ******************************************************************************/
+void model1::SetTunings(double Kp, double Ki, double Kd) {
+	if (Kp < 0 || Ki < 0 || Kd < 0)
+		return;
+
+	dispKp = Kp;
+	dispKi = Ki;
+	dispKd = Kd;
+
+	double SampleTimeInSec = ((double) SampleTime) / 1000;
+	kp = Kp;
+	ki = Ki * SampleTimeInSec;
+	kd = Kd / SampleTimeInSec;
+
+	if (controllerDirection == 1) {
+		kp = (0 - kp);
+		ki = (0 - ki);
+		kd = (0 - kd);
+	}
+}
+
+/* SetSampleTime(...) *********************************************************
+ * sets the period, in Milliseconds, at which the calculation is performed
+ ******************************************************************************/
+void model1::SetSampleTime(int NewSampleTime) {
+	if (NewSampleTime > 0) {
+		double ratio = (double) NewSampleTime / 1000 / (double) SampleTime;
+		ki *= ratio;
+		kd /= ratio;
+		SampleTime = (double) NewSampleTime / 1000.0;
+	}
+}
+
+/* SetOutputLimits(...)****************************************************
+ *     This function will be used far more often than SetInputLimits.  while
+ *  the input to the controller will generally be in the 0-1023 range (which is
+ *  the default already,)  the output will be a little different.  maybe they'll
+ *  be doing a time window and will need 0-8000 or something.  or maybe they'll
+ *  want to clamp it from 0-125.  who knows.  at any rate, that can all be done
+ *  here.
+ **************************************************************************/
+void model1::SetOutputLimits(double Min, double Max) {
+	if (Min >= Max)
+		return;
+	outMin = Min;
+	outMax = Max;
+
+	if (inAuto) {
+		if (*myOutput > outMax) {
+			*myOutput = outMax;
+		} else if (*myOutput < outMin) {
+			*myOutput = outMin;
+		}
+		if (ITerm > outMax) {
+			ITerm = outMax;
+		} else if (ITerm < outMin) {
+			ITerm = outMin;
+		}
+	}
+}
+
+/* SetMode(...)****************************************************************
+ * Allows the controller Mode to be set to manual (0) or Automatic (non-zero)
+ * when the transition from manual to auto occurs, the controller is
+ * automatically initialized
+ ******************************************************************************/
+void model1::SetMode(int Mode) {
+	bool newAuto = (Mode == 1);
+	if (newAuto == !inAuto) { /*we just went from manual to auto*/
+		Initialize();
+	}
+	inAuto = newAuto;
+}
+
+/* Initialize()****************************************************************
+ *	does all the things that need to happen to ensure a bumpless transfer
+ *  from manual to automatic mode.
+ ******************************************************************************/
+void model1::Initialize() {
+	// reset lastTime in case thread wasn't run straight after being created.
+	lastTime = std::chrono::high_resolution_clock::now();
+	ITerm = *myOutput;
+	if (ITerm > outMax) {
+		ITerm = outMax;
+	} else if (ITerm < outMin) {
+		ITerm = outMin;
+	}
+}
+
+/* SetControllerDirection(...)*************************************************
+ * The PID will either be connected to a DIRECT acting process (+Output leads
+ * to +Input) or a REVERSE acting process(+Output leads to -Input.)  we need to
+ * know which one, because otherwise we may increase the output when we should
+ * be decreasing.  This is called from the constructor.
+ ******************************************************************************/
+void model1::SetControllerDirection(int Direction) {
+	if (inAuto && Direction != controllerDirection) {
+		kp = (0 - kp);
+		ki = (0 - ki);
+		kd = (0 - kd);
+	}
+	controllerDirection = Direction;
+}
+
 }; /* namespace PID */
