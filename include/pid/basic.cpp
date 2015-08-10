@@ -20,12 +20,11 @@
 namespace PID {
 basic::basic(double* Input, double* Output, double* SetPoint, double _kp,
 		double _ki, double _kd, int dir) :
-		myInput(Input), myOutput(Output), mySetPoint(SetPoint), inAuto(false) {
+		myInput(Input), myOutput(Output), mySetPoint(SetPoint), inAuto(false), SampleTime(0.1) {
 	bExit.store(false);
-	SampleTime = 0.100;
-	basic::SetOutputLimits(0, 100);
-	basic::SetControllerDirection(dir);
-	basic::SetTunings(_kp, _ki, _kd);
+	SetOutputLimits(0, 100);
+	SetControllerDirection(dir);
+	SetTunings(_kp, _ki, _kd);
 	lastTime = std::chrono::high_resolution_clock::now();
 }
 
@@ -33,27 +32,28 @@ void basic::Compute() {
 	if (!inAuto)
 		return;
 	std::chrono::duration<float, std::deci> timeChange;
-	std::chrono::high_resolution_clock::time_point now =
-			std::chrono::high_resolution_clock::now();
+	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
 	timeChange = (now - lastTime);
 	if (timeChange.count() >= SampleTime) {
 		/*Compute all the working error variables*/
 		double input = *myInput;
 		double error = *mySetPoint - input;
 		ITerm += (ki * error);
-		if (ITerm > outMax)
+		if (ITerm > outMax) {
 			ITerm = outMax;
-		else if (ITerm < outMin)
+		} else if (ITerm < outMin) {
 			ITerm = outMin;
+		}
 		double dInput = (input - lastInput);
 
 		/*Compute PID Output*/
 		double output = kp * error + ITerm - kd * dInput;
 
-		if (output > outMax)
+		if (output > outMax) {
 			output = outMax;
-		else if (output < outMin)
+		} else if (output < outMin) {
 			output = outMin;
+		}
 		*myOutput = output;
 
 		/*Remember some variables for next time*/
@@ -113,7 +113,6 @@ void basic::SetSampleTime(int NewSampleTime) {
 		ki *= ratio;
 		kd /= ratio;
 		SampleTime = (double) NewSampleTime / 1000.0;
-		std::cout << std::to_string(SampleTime) << std::endl;
 	}
 }
 
@@ -132,15 +131,16 @@ void basic::SetOutputLimits(double Min, double Max) {
 	outMax = Max;
 
 	if (inAuto) {
-		if (*myOutput > outMax)
+		if (*myOutput > outMax) {
 			*myOutput = outMax;
-		else if (*myOutput < outMin)
+		} else if (*myOutput < outMin) {
 			*myOutput = outMin;
-
-		if (ITerm > outMax)
+		}
+		if (ITerm > outMax) {
 			ITerm = outMax;
-		else if (ITerm < outMin)
+		} else if (ITerm < outMin) {
 			ITerm = outMin;
+		}
 	}
 }
 
@@ -152,7 +152,7 @@ void basic::SetOutputLimits(double Min, double Max) {
 void basic::SetMode(int Mode) {
 	bool newAuto = (Mode == 1);
 	if (newAuto == !inAuto) { /*we just went from manual to auto*/
-		basic::Initialize();
+		Initialize();
 	}
 	inAuto = newAuto;
 }
@@ -166,10 +166,11 @@ void basic::Initialize() {
 	lastTime = std::chrono::high_resolution_clock::now();
 	ITerm = *myOutput;
 	lastInput = *myInput;
-	if (ITerm > outMax)
+	if (ITerm > outMax) {
 		ITerm = outMax;
-	else if (ITerm < outMin)
+	} else if (ITerm < outMin) {
 		ITerm = outMin;
+	}
 }
 
 /* SetControllerDirection(...)*************************************************
@@ -187,26 +188,5 @@ void basic::SetControllerDirection(int Direction) {
 	controllerDirection = Direction;
 }
 
-/* Status Funcions*************************************************************
- * Just because you set the Kp=-1 doesn't mean it actually happened.  these
- * functions query the internal state of the PID.  they're here for display
- * purposes.  this are the functions the PID Front-end uses for example
- ******************************************************************************/
-double basic::GetKp() {
-	return dispKp;
-}
-double basic::GetKi() {
-	return dispKi;
-}
-double basic::GetKd() {
-	return dispKd;
-}
-int basic::GetMode() {
-	return inAuto ? 1 : 0;
-}
-int basic::GetDirection() {
-	return controllerDirection;
-}
-}
-;
+};
 /* namespace PID */

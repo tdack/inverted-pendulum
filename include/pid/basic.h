@@ -46,10 +46,10 @@ public:
 												  //it's likely the user will want to change this depending on
 												  //the application
 
-												  //available but not commonly used functions ********************************************************
+	//available but not commonly used functions ********************************************************
 	void SetTunings(double kp, double ki, // * While most users will set the tunings once in the
-			double kd); //   constructor, this function gives the user the option
-						//   of changing tunings during runtime for Adaptive control
+			double kd); 				  //   constructor, this function gives the user the option
+										  //   of changing tunings during runtime for Adaptive control
 
 	void SetControllerDirection(int);// * Sets the Direction, or "Action" of the controller. DIRECT
 									 //   means the output will increase when error is positive. REVERSE
@@ -59,13 +59,26 @@ public:
 	void SetSampleTime(int); // * sets the frequency, in Milliseconds, with which
 							 //   the pid-new calculation is performed.  default is 100
 
-							 // Display functions
-							 //****************************************************************
-	double GetKp();			// These functions query the pid for interal values.
-	double GetKi();			// they were created mainly for the pid front-end,
-	double GetKd();			// where it's important to know what is actually
-	int GetMode();			// inside the pid-new.
-	int GetDirection();		//
+	/* Status Funcions*************************************************************
+	 * Just because you set the Kp=-1 doesn't mean it actually happened.  these
+	 * functions query the internal state of the PID.  they're here for display
+	 * purposes.
+	 ******************************************************************************/
+	inline double GetKp() {
+		return dispKp;
+	}
+	inline double GetKi() {
+		return dispKi;
+	}
+	inline double GetKd() {
+		return dispKd;
+	}
+	inline int GetMode() {
+		return inAuto ? 1 : 0;
+	}
+	inline int GetDirection() {
+		return controllerDirection;
+	}
 
 	void onStartHandler();  // called by run() to do the work in the thread
 
@@ -95,8 +108,9 @@ private:
 	std::chrono::high_resolution_clock::time_point lastTime;
 	double ITerm, lastInput;
 
+	bool inAuto;
 	double SampleTime;
-	double outMin, outMax;bool inAuto;
+	double outMin, outMax;
 };
 
 }
