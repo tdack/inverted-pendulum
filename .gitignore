@@ -27,8 +27,6 @@
 *.out
 *.app
 
-Debug/
-Release/
 .settings/
 Doc/
 src/doxygen_sqlite3.db
@@ -36,5 +34,7 @@ src/doxygen_sqlite3.db
 pendulum
 /.pydevproject
 *.dtbo
-/Websocket/
-/Pendulum/
+/1. */
+/2. */
+/3. */
+/4. */
