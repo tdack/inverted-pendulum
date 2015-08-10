@@ -28,6 +28,7 @@
 #include <BlackLib/BlackGPIO/BlackGPIO.h>
 #include <BlackLib/BlackI2C/BlackI2C.h>
 #include <BlackLib/BlackThread/BlackThread.h>
+#include <BlackLib/BlackPWM/BlackPWM.h>
 
 #include <threadedEQEP.h>
 
