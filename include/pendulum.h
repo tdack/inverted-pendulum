@@ -24,20 +24,23 @@
 #ifndef INCLUDE_PENDULUM_H_
 #define INCLUDE_PENDULUM_H_
 
+// BlackLib classes
 #include <BlackLib/BlackDef.h>
 #include <BlackLib/BlackGPIO/BlackGPIO.h>
 #include <BlackLib/BlackI2C/BlackI2C.h>
 #include <BlackLib/BlackThread/BlackThread.h>
 #include <BlackLib/BlackPWM/BlackPWM.h>
 
+// Threaded eQEP implementation
 #include <threadedEQEP.h>
 
+// Pololu Serial Motor Controller class
 #include <pololuSMC.h>
 
+// SSD1306 OLED driver
 #include <SSD1306/gfx.h>
 #include <SSD1306/rgb_driver.h>
 #include <SSD1306/ssd1306.h>
-
 
 #include <rlutil.h>
 #include <sys/stat.h>
