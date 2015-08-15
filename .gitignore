@@ -32,7 +32,8 @@ Doc/
 src/doxygen_sqlite3.db
 /.pydevproject
 *.dtbo
-/1. */
-/2. */
-/4. */
-/5. */
+/Debug/
+/Debug (Local)/
+/Pendulum/
+/Release/
+/Websocket/
