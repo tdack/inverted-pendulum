@@ -1,5 +1,5 @@
 /**
- *! @file pid.h
+ *! @file velocity.h
  *! Threaded PID controller header file
  *!
  *! @author troy
@@ -22,8 +22,8 @@
  **/
 
 
-#ifndef INCLUDE_PID_MODEL1_H_
-#define INCLUDE_PID_MODEL1_H_
+#ifndef INCLUDE_PID_VELOCITY_H_
+#define INCLUDE_PID_VELOCITY_H_
 
 #include <BlackLib/BlackThread/BlackThread.h>
 #include <atomic>
@@ -34,7 +34,7 @@ class threadedEQEP;
 
 namespace PID {
 
-class model1 : public BlackLib::BlackThread {
+class velocity : public BlackLib::BlackThread {
 
 public:
 
@@ -43,7 +43,7 @@ public:
 	 *
 	 *	Uses pendulum angle and velocity
 	 */
-	model1(double* Angle, double* Velocity, double* Output, double* SetPoint, double _kp,	double _ki, double _kd);
+	velocity(double* Angle, double* Velocity, double* Output, double* SetPoint, double _kp,	double _ki, double _kd, int dir);
 
 	void SetMode(int Mode); // * sets pid-new to either Manual (0) or Auto (non-0)
 
@@ -119,4 +119,4 @@ private:
 	double outMin, outMax;
 };
 }; /* namespace PID*/
-#endif /* INCLUDE_PID_MODEL1_H_ */
+#endif /* INCLUDE_PID_VELOCITY_H_ */

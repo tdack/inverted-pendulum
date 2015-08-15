@@ -1,5 +1,5 @@
 /**
- * @file pid.cpp
+ * @file velocity.cpp
  * @brief Threaded PID controller
  *
  * @author Troy Dack
@@ -11,23 +11,24 @@
  **/
 
 #include <pendulum.h>
-#include <pid/model1.h>
 #include <pololuSMC.h>
 #include <threadedEQEP.h>
 #include <iostream>
+#include "velocity.h"
 
 
 namespace PID {
 
-model1::model1(double* Angle, double* Velocity, double* Output, double* SetPoint, double _kp,	double _ki, double _kd) :
+velocity::velocity(double* Angle, double* Velocity, double* Output, double* SetPoint, double _kp,	double _ki, double _kd, int dir) :
 		myAngle(Angle), myVelocity(Velocity), myOutput(Output), mySetPoint(SetPoint), inAuto(false), SampleTime(0.1) {
 	bExit.store(false);
 	SetOutputLimits(0, 100);
+	SetControllerDirection(dir);
 	SetTunings(_kp, _ki, _kd);
 	lastTime = std::chrono::high_resolution_clock::now();
 }
 
-void model1::Compute() {
+void velocity::Compute() {
 	if (!inAuto)
 		return;
 	std::chrono::duration<float, std::deci> timeChange;
@@ -56,7 +57,7 @@ void model1::Compute() {
 	}
 }
 
-void model1::onStartHandler() {
+void velocity::onStartHandler() {
 	Initialize();
 	while (!bExit.load()) {
 		this->Compute();
@@ -64,7 +65,7 @@ void model1::onStartHandler() {
 	}
 }
 
-void model1::stop() {
+void velocity::stop() {
 	bExit.store(true);
 }
 /* SetTunings(...)*************************************************************
@@ -72,7 +73,7 @@ void model1::stop() {
  * it's called automatically from the constructor, but tunings can also
  * be adjusted on the fly during normal operation
  ******************************************************************************/
-void model1::SetTunings(double Kp, double Ki, double Kd) {
+void velocity::SetTunings(double Kp, double Ki, double Kd) {
 	if (Kp < 0 || Ki < 0 || Kd < 0)
 		return;
 
@@ -95,7 +96,7 @@ void model1::SetTunings(double Kp, double Ki, double Kd) {
 /* SetSampleTime(...) *********************************************************
  * sets the period, in Milliseconds, at which the calculation is performed
  ******************************************************************************/
-void model1::SetSampleTime(int NewSampleTime) {
+void velocity::SetSampleTime(int NewSampleTime) {
 	if (NewSampleTime > 0) {
 		double ratio = (double) NewSampleTime / 1000 / (double) SampleTime;
 		ki *= ratio;
@@ -112,7 +113,7 @@ void model1::SetSampleTime(int NewSampleTime) {
  *  want to clamp it from 0-125.  who knows.  at any rate, that can all be done
  *  here.
  **************************************************************************/
-void model1::SetOutputLimits(double Min, double Max) {
+void velocity::SetOutputLimits(double Min, double Max) {
 	if (Min >= Max)
 		return;
 	outMin = Min;
@@ -137,7 +138,7 @@ void model1::SetOutputLimits(double Min, double Max) {
  * when the transition from manual to auto occurs, the controller is
  * automatically initialized
  ******************************************************************************/
-void model1::SetMode(int Mode) {
+void velocity::SetMode(int Mode) {
 	bool newAuto = (Mode == 1);
 	if (newAuto == !inAuto) { /*we just went from manual to auto*/
 		Initialize();
@@ -149,7 +150,7 @@ void model1::SetMode(int Mode) {
  *	does all the things that need to happen to ensure a bumpless transfer
  *  from manual to automatic mode.
  ******************************************************************************/
-void model1::Initialize() {
+void velocity::Initialize() {
 	// reset lastTime in case thread wasn't run straight after being created.
 	lastTime = std::chrono::high_resolution_clock::now();
 	ITerm = *myOutput;
@@ -166,7 +167,7 @@ void model1::Initialize() {
  * know which one, because otherwise we may increase the output when we should
  * be decreasing.  This is called from the constructor.
  ******************************************************************************/
-void model1::SetControllerDirection(int Direction) {
+void velocity::SetControllerDirection(int Direction) {
 	if (inAuto && Direction != controllerDirection) {
 		kp = (0 - kp);
 		ki = (0 - ki);
