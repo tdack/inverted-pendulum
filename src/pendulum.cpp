@@ -11,7 +11,7 @@
  **/
 
 #include <pendulum.h>
-#include <pid/basic.h>
+#include <pid/velocity.h>
 
 using namespace std;
 
@@ -55,9 +55,11 @@ void controller(double kp, double ki, double kd, int dir) {
 
 	// Create a new PID controller
 	double pendulumAngle = 0;
+	double pendulumVelocity =0;
 	double motorSpeed = 0;
 	double setAngle = 0;
-	PID::basic *Controller = new PID::basic(&pendulumAngle, &motorSpeed, &setAngle, kp, ki, kd, dir);
+//	PID::basic *Controller = new PID::basic(&pendulumAngle, &motorSpeed, &setAngle, kp, ki, kd, dir);
+	PID::velocity *Controller = new PID::velocity(&pendulumAngle,&pendulumVelocity, &motorSpeed, &setAngle, kp, ki, kd, dir);
 
 	Controller->SetMode(1); // Automatic
 	Controller->SetOutputLimits(-3200.0,3200.0);
@@ -77,6 +79,8 @@ void controller(double kp, double ki, double kd, int dir) {
 	int setSpeed;
 	while (count < 500)  {
 		pendulumAngle = pendulumEQEP->getAngleDeg();
+		pendulumVelocity = pendulumEQEP->getVelocityDeg();
+		// Motor doesn't move unless speed > 160
 		setSpeed = ( motorSpeed > 0 ? 1 : -1) * 160 + (int)motorSpeed;
 		if (abs(pendulumAngle) > 25) {
 			// stop the motor if we have deviated too far from vertical
@@ -204,14 +208,21 @@ int main(int argc, char const *argv[]) {
 
 	std::cout << "Checking for overlays ... " << std::flush;
 
+	string SLOTS = "SLOTS=/sys/devices/bone_capemgr.9/slots";
+
 	if (checkOverlays()) {
 		cout << "OK" << std::endl;
 	} else {
 		rlutil::setColor(rlutil::WHITE);
 		cout << "Loading Overlays ..." << std::endl;
-		if (system("./load_overlays.sh") == -1) {
-			return -1;
-		}
+		ofstream fSlots;
+		fSlots.open(SLOTS);
+		fSlots << "ADAFRUIT-UART2" << std::endl;
+		fSlots << "PyBBIO-epwmss0" << std::endl;
+		fSlots << "PyBBIO-eqep0" << std::endl;
+		fSlots << "PyBBIO-epwmss1" << std::endl;
+		fSlots << "PyBBIO-eqep1" << std::endl;
+		fSlots.close();
 	}
 
 	if (args.size() == 4) {
