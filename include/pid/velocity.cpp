@@ -51,8 +51,6 @@ void velocity::Compute() {
 		}
 		*myOutput = output;
 
-//		std::cout << timeChange.count() << "\t u: " << u << std::endl;
-
 		lastTime = now;
 	}
 }
