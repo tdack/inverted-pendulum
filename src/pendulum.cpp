@@ -12,8 +12,6 @@
 
 #include <Controller/lqr.h>
 #include <pendulum.h>
-#include <tuple>
-#include <map>
 
 using namespace std;
 
