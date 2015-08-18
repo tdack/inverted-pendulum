@@ -10,16 +10,14 @@
  *
  **/
 
+#include <Controller/lqr.h>
 #include <pendulum.h>
-#include <pid/velocity.h>
+#include <tuple>
+#include <map>
 
 using namespace std;
 
 void controller(double kp, double ki, double kd, int dir) {
-
-	// Create new EQEPs object to monitor the pendulum & motor position
-	threadedEQEP *pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, ENCODER_PPR);
-	threadedEQEP *motorEQEP = new threadedEQEP(MOTOR_EQEP, MOTOR_PPR);
 
 	// Initialise display
 	BlackLib::BlackI2C *I2C_1 = new BlackLib::BlackI2C(BlackLib::I2C_1, 0x3c);
@@ -31,14 +29,39 @@ void controller(double kp, double ki, double kd, int dir) {
 	fx.clearScreen();
 	fx.setTextColor(SSD1306::RGB::black, SSD1306::RGB::white);
 	fx.setTextSize(1);
-	fx.setCursor(0,4);
+	fx.setCursor(2,4);
 	fx.write(" Raise the pendulum");
 	fx.setCursor(0, 24);
 	fx.write(" P:\n M:\n S:");
 	fx.drawRoundRect(0,0,fx.getWidth(), 16, 4, SSD1306::RGB::black);
 	std::cout << "Raise the pendulum" << std::endl;
 
-	// Start the threads running
+	// Variables that will be used to pass data to/from controller
+	double pendulumAngle = 0;
+	double pendulumVelocity =0;
+	double motorAngle = 0;
+	double motorVelocity =0;
+	double motorSpeed = 0;
+	double setAngle = 0;
+	int count = 0;
+	int setSpeed;
+
+	// Create new EQEPs object to monitor the pendulum & motor position
+	threadedEQEP *pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, ENCODER_PPR);
+	threadedEQEP *motorEQEP = new threadedEQEP(MOTOR_EQEP, MOTOR_PPR);
+
+	// Create a new controller
+//	Controller::basic *ctrl = new Controller::basic(&pendulumAngle, &motorSpeed, &setAngle, kp, ki, kd, dir);
+//	Controller::velocity *ctrl = new Controller::velocity(&pendulumAngle,&pendulumVelocity, &motorSpeed, &setAngle, kp, ki, kd, dir);
+	Controller::lqr *ctrl = new Controller::lqr(&pendulumAngle, &pendulumVelocity,
+										&motorAngle, &motorVelocity,
+										&motorSpeed, &setAngle,
+										-23.1455, 126.3112, -5.7435, 7.5213,
+										dir);
+	// Create a Simple Motor Controller object
+	Pololu::SMC *SMC = new Pololu::SMC(POLOLU_TTY);
+
+	// Start the EQEP threads running
 	pendulumEQEP->run();
 	motorEQEP->run();
 
@@ -50,39 +73,31 @@ void controller(double kp, double ki, double kd, int dir) {
 		fx.refreshScreen();
 	}
 
-	// Reset pendulum position to make vertical zero
-	pendulumEQEP->setPosition(180-abs(pendulumEQEP->getAngleDeg()));
-
-	// Create a new PID controller
-	double pendulumAngle = 0;
-	double pendulumVelocity =0;
-	double motorSpeed = 0;
-	double setAngle = 0;
-//	PID::basic *Controller = new PID::basic(&pendulumAngle, &motorSpeed, &setAngle, kp, ki, kd, dir);
-	PID::velocity *Controller = new PID::velocity(&pendulumAngle,&pendulumVelocity, &motorSpeed, &setAngle, kp, ki, kd, dir);
-
-	Controller->SetMode(1); // Automatic
-	Controller->SetOutputLimits(-3200.0,3200.0);
-	Controller->SetSampleTime(25); // sample time in milliseconds
-
-	// Create a Simple Motor Controller object
-	Pololu::SMC *SMC = new Pololu::SMC(POLOLU_TTY);
+	ctrl->SetMode(1); // Automatic
+	ctrl->SetOutputLimits(-900.0,900.0);
+	ctrl->SetSampleTime(20); // sample time in milliseconds
 
 	SMC->SetTargetSpeed(0);
-	Controller->run(); // start the controller thread
 
+	// Reset pendulum position to make vertical zero
+	pendulumEQEP->setPosition(180-abs(pendulumEQEP->getAngleDeg()));
+	motorEQEP->setPosition(0);
+
+	// start the controller thread
+	ctrl->run();
+
+	fx.setCursor(2,4);
+	fx.write("Controller Running ");
+	std::cout << "Controller Running ...." << std::endl;
 	// Let the threads run for a bit
-	fx.setCursor(0,0);
-	fx.write("PID Running ....  ");
-	std::cout << "PID Running ...." << std::endl;
-	int count = 0;
-	int setSpeed;
 	while (count < 500)  {
-		pendulumAngle = pendulumEQEP->getAngleDeg();
-		pendulumVelocity = pendulumEQEP->getVelocityDeg();
+		pendulumAngle = pendulumEQEP->getAngle();
+		pendulumVelocity = pendulumEQEP->getVelocity();
+		motorAngle = motorEQEP->getAngle();
+		motorVelocity = motorEQEP->getVelocity();
 		// Motor doesn't move unless speed > 160
 		setSpeed = ( motorSpeed > 0 ? 1 : -1) * 160 + (int)motorSpeed;
-		if (abs(pendulumAngle) > 25) {
+		if (abs(pendulumAngle * 180 / M_PI) > 25) {
 			// stop the motor if we have deviated too far from vertical
 			SMC->SetTargetSpeed(0);
 		} else {
@@ -95,6 +110,7 @@ void controller(double kp, double ki, double kd, int dir) {
 		fx.write(to_string(motorEQEP->getAngleDeg()).c_str());
 		fx.setCursor(18,40);
 		fx.write(to_string(setSpeed).c_str());
+		fx.write("   ");
 		fx.setCursor(110,54);
 		fx.write(to_string(count).c_str());
 		fx.write("  ");
@@ -102,37 +118,69 @@ void controller(double kp, double ki, double kd, int dir) {
 	}
 	SMC->SetTargetSpeed(0);
 
-	Controller->stop();
+	ctrl->stop();
 	pendulumEQEP->stop();
 	motorEQEP->stop();
 
 	// Don't quit until all threads are finished
-	WAIT_THREAD_FINISH(Controller);
+	WAIT_THREAD_FINISH(ctrl);
 	WAIT_THREAD_FINISH(pendulumEQEP);
 	WAIT_THREAD_FINISH(motorEQEP);
+
+	delete ctrl;
+	delete pendulumEQEP;
+	delete motorEQEP;
 
 	cout << "Done!" << endl;
 	return;
 }
 
 bool checkOverlays(){
-	std::vector<std::string> files = {
-			POLOLU_TTY,								   // tty device path
-			"/sys/bus/platform/devices/48300180.eqep", // eqep device path
-			"/sys/bus/platform/devices/48302180.eqep"  // eqep device path
+	std::map<std::string, std::vector<std::string> > overlay_devices {
+		{POLOLU_TTY, { "ADAFRUIT-UART2" } },		// /dev/ttyO2
+		{"/sys/bus/platform/devices/48300180.eqep",	// eqep device path
+					{ "PyBBIO-epwmss0",				// Enhanced PWM Sub System 0
+					  "PyBBIO-eqep0" }				// EQEP 0
+		},
+		{"/sys/bus/platform/devices/48302180.eqep",	// eqep device path
+					{ "PyBBIO-epwmss1",				// Enhanced PWM Sub System 1
+					  "PyBBIO-eqep1" }				// EQEP 1
+		}
 	};
 	struct stat buffer;
 	bool overlays_loaded = true;
+	string SLOTS = "/sys/devices/bone_capemgr.9/slots"; // Path to Cape Manager slots file
+	ofstream fSlots;
 
-	for (std::string& file : files) {
-		if (stat(file.c_str(), &buffer) != 0) {
+	fSlots.open(SLOTS);
+	if (!fSlots.is_open()) {
+		cout << "Couldn't open " << SLOTS << ", can't load overlays." << std::endl;
+		return false;
+	}
+
+	// Iterate over devices we need
+	for (auto &dev : overlay_devices) {
+		rlutil::setColor(rlutil::YELLOW);
+		cout << dev.first << " ";
+		// Check if file exists
+		if (stat(dev.first.c_str(), &buffer) != 0) {
 			rlutil::setColor(rlutil::YELLOW);
-			cout << file << " ";
+			cout << dev.first << " ";
 			rlutil::setColor(rlutil::RED);
-			cout << "not found." << endl;;
-			overlays_loaded = false;
+			cout << "not found .... ";
+			// Load the overlays for this device
+			for (auto &f : dev.second ) {
+				fSlots << f.c_str() << std::flush;
+			}
+			rlutil::setColor(rlutil::GREEN);
+			cout << "loaded!" << std::endl;
+		} else {
+			cout << std::endl;
 		}
 	}
+	rlutil::setColor(rlutil::WHITE);
+	fSlots.close();
+
 	return overlays_loaded;
 }
 
@@ -206,23 +254,12 @@ void testOLED() {
 int main(int argc, char const *argv[]) {
 	std::vector<std::string> args(argv +1, argv + argc);
 
-	std::cout << "Checking for overlays ... " << std::flush;
-
-	string SLOTS = "SLOTS=/sys/devices/bone_capemgr.9/slots";
+	std::cout << "Checking overlays are loaded... \n" << std::flush;
 
 	if (checkOverlays()) {
 		cout << "OK" << std::endl;
 	} else {
-		rlutil::setColor(rlutil::WHITE);
-		cout << "Loading Overlays ..." << std::endl;
-		ofstream fSlots;
-		fSlots.open(SLOTS);
-		fSlots << "ADAFRUIT-UART2" << std::endl;
-		fSlots << "PyBBIO-epwmss0" << std::endl;
-		fSlots << "PyBBIO-eqep0" << std::endl;
-		fSlots << "PyBBIO-epwmss1" << std::endl;
-		fSlots << "PyBBIO-eqep1" << std::endl;
-		fSlots.close();
+		return 0;
 	}
 
 	if (args.size() == 4) {
