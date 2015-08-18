@@ -1,0 +1,98 @@
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="msapplication-tap-highlight" content="no">
+  <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+
+  <title>Inverted Pendulum Control</title>
+
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+  <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/4.10.0/css/bootstrap-slider.css">
+  <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.3.2/css/bootstrap2/bootstrap-switch.min.css">
+  <link rel="stylesheet" href="css/vendor/jqwidgets/jqx.base.css">
+  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/4.10.0/bootstrap-slider.min.js"></script>
+  <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.3.2/js/bootstrap-switch.min.js"></script>
+  <script type="text/javascript" src="js/vendor/jqwidgets/jqxcore.js"></script>
+  <script type="text/javascript" src="js/vendor/jqwidgets/jqxdraw.js"></script>
+  <script type="text/javascript" src="js/vendor/jqwidgets/jqxgauge.js"></script>
+  <script type="text/javascript" src="js/index.js"></script>
+  <style>
+    .jqx-gauge-caption {
+      font-size: 2em;
+    }
+  </style>
+  <head>
+
+    <body style="padding-top: 50px">
+      <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Inverted Pendulum Control</a>
+          </div>
+          <div id="navbar" class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+              <li class="active"><a href="#">Home</a></li>
+              <li><a href="#about">About</a></li>
+              <li><a href="#contact">Contact</a></li>
+            </ul>
+          </div>
+          <!--/.nav-collapse -->
+        </div>
+      </nav>
+
+
+      <div class="container">
+        <h1>Control System Parameters</h1>
+        <div class="row" style="padding-bottom: 15px;">
+          <div class="col-md-1"></div>
+          <div class="col-md-2">
+              <div id="pendulum"></div>
+              <div id="pendulumGauge"></div>
+          </div>
+        </div>
+        <div class="row" style="padding-bottom: 15px;">
+          <div class="col-md-1">KP</div>
+          <div class="col-md-3">
+            <input id="kp" class="param" type="text" data-slider-id='kpSlider' data-slider-min="0" data-slider-max="15" data-slider-step="0.1" data-slider-value="1" />
+          </div>
+        </div>
+        <div class="row" style="padding-bottom: 15px;">
+          <div class="col-md-1">KI</div>
+          <div class="col-md-3">
+            <input id="ki" class="param" type="text" data-slider-id='kiSlider' data-slider-min="0" data-slider-max="15" data-slider-step="0.1" data-slider-value="1" />
+          </div>
+        </div>
+        <div class="row" style="padding-bottom: 15px;">
+          <div class="col-md-1">KD</div>
+          <div class="col-md-3">
+            <input id="kd" class="param" type="text" data-slider-id='kdSlider' data-slider-min="0" data-slider-max="15" data-slider-step="0.1" data-slider-value="1" />
+          </div>
+        </div>
+      </div>
+      <!-- /.container -->
+      <div class="container">
+        <div class="row" style="height: 2em;">
+          <div class="col-sm-6 col-lg-4">
+            <p class="text-center">
+              <input id="connect" type="checkbox" data-inverse="true" data-on-color="danger" data-off-color="success" data-on-text="Disconnect" data-off-text="Connect">
+            </p>
+          </div>
+        </div>
+        <div class="row">&nbsp;
+        </div>
+      </div>
+    </body>
