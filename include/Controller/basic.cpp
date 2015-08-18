@@ -1,6 +1,8 @@
 /**
- * @file velocity.cpp
+ * @file basic.cpp
  * @brief Threaded PID controller
+ *
+ * Threaded PID controller based on https://github.com/br3ttb/Arduino-PID-Library
  *
  * @author Troy Dack
  * @date Copyright (C) 2015
@@ -10,17 +12,15 @@
  *
  **/
 
-#include <pendulum.h>
-#include <pololuSMC.h>
-#include <threadedEQEP.h>
+#include <Controller/basic.h>
 #include <iostream>
-#include "velocity.h"
+#include <ratio>
+#include <string>
 
-
-namespace PID {
-
-velocity::velocity(double* Angle, double* Velocity, double* Output, double* SetPoint, double _kp,	double _ki, double _kd, int dir) :
-		myAngle(Angle), myVelocity(Velocity), myOutput(Output), mySetPoint(SetPoint), inAuto(false), SampleTime(0.1) {
+namespace Controller {
+basic::basic(double* Input, double* Output, double* SetPoint, double _kp,
+		double _ki, double _kd, int dir) :
+		myInput(Input), myOutput(Output), mySetPoint(SetPoint), inAuto(false), SampleTime(0.1) {
 	bExit.store(false);
 	SetOutputLimits(0, 100);
 	SetControllerDirection(dir);
@@ -28,7 +28,7 @@ velocity::velocity(double* Angle, double* Velocity, double* Output, double* SetP
 	lastTime = std::chrono::high_resolution_clock::now();
 }
 
-void velocity::Compute() {
+void basic::Compute() {
 	if (!inAuto)
 		return;
 	std::chrono::duration<float, std::deci> timeChange;
@@ -36,13 +36,18 @@ void velocity::Compute() {
 	timeChange = (now - lastTime);
 	if (timeChange.count() >= SampleTime) {
 		/*Compute all the working error variables*/
-		double u = 0.0;
+		double input = *myInput;
+		double error = *mySetPoint - input;
+		ITerm += (ki * error);
+		if (ITerm > outMax) {
+			ITerm = outMax;
+		} else if (ITerm < outMin) {
+			ITerm = outMin;
+		}
+		double dInput = (input - lastInput);
 
-		double err_p = 0 - *myAngle;
-		double err_d = 0 - *myVelocity;
-		double err_i = err_p + err_d;
-		u = -((kp * err_p) + (kd * err_d) + (ki * err_i));
-		double output = outMax / 11.7 * u;
+		/*Compute PID Output*/
+		double output = kp * error + ITerm - kd * dInput;
 
 		if (output > outMax) {
 			output = outMax;
@@ -51,11 +56,18 @@ void velocity::Compute() {
 		}
 		*myOutput = output;
 
+		/*Remember some variables for next time*/
+		lastInput = input;
 		lastTime = now;
+//		std::cout << timeChange.count();
+//		std::cout << "\t Input: " << std::to_string(input) << "\tError: "
+//				<< std::to_string(error) << "\t";
+//		std::cout << "Output: " << std::to_string(*myOutput) << std::endl;
 	}
+	return;
 }
 
-void velocity::onStartHandler() {
+void basic::onStartHandler() {
 	Initialize();
 	while (!bExit.load()) {
 		this->Compute();
@@ -63,15 +75,16 @@ void velocity::onStartHandler() {
 	}
 }
 
-void velocity::stop() {
+void basic::stop() {
 	bExit.store(true);
 }
+
 /* SetTunings(...)*************************************************************
  * This function allows the controller's dynamic performance to be adjusted.
  * it's called automatically from the constructor, but tunings can also
  * be adjusted on the fly during normal operation
  ******************************************************************************/
-void velocity::SetTunings(double Kp, double Ki, double Kd) {
+void basic::SetTunings(double Kp, double Ki, double Kd) {
 	if (Kp < 0 || Ki < 0 || Kd < 0)
 		return;
 
@@ -94,7 +107,7 @@ void velocity::SetTunings(double Kp, double Ki, double Kd) {
 /* SetSampleTime(...) *********************************************************
  * sets the period, in Milliseconds, at which the calculation is performed
  ******************************************************************************/
-void velocity::SetSampleTime(int NewSampleTime) {
+void basic::SetSampleTime(int NewSampleTime) {
 	if (NewSampleTime > 0) {
 		double ratio = (double) NewSampleTime / 1000 / (double) SampleTime;
 		ki *= ratio;
@@ -111,7 +124,7 @@ void velocity::SetSampleTime(int NewSampleTime) {
  *  want to clamp it from 0-125.  who knows.  at any rate, that can all be done
  *  here.
  **************************************************************************/
-void velocity::SetOutputLimits(double Min, double Max) {
+void basic::SetOutputLimits(double Min, double Max) {
 	if (Min >= Max)
 		return;
 	outMin = Min;
@@ -136,7 +149,7 @@ void velocity::SetOutputLimits(double Min, double Max) {
  * when the transition from manual to auto occurs, the controller is
  * automatically initialized
  ******************************************************************************/
-void velocity::SetMode(int Mode) {
+void basic::SetMode(int Mode) {
 	bool newAuto = (Mode == 1);
 	if (newAuto == !inAuto) { /*we just went from manual to auto*/
 		Initialize();
@@ -148,10 +161,11 @@ void velocity::SetMode(int Mode) {
  *	does all the things that need to happen to ensure a bumpless transfer
  *  from manual to automatic mode.
  ******************************************************************************/
-void velocity::Initialize() {
+void basic::Initialize() {
 	// reset lastTime in case thread wasn't run straight after being created.
 	lastTime = std::chrono::high_resolution_clock::now();
 	ITerm = *myOutput;
+	lastInput = *myInput;
 	if (ITerm > outMax) {
 		ITerm = outMax;
 	} else if (ITerm < outMin) {
@@ -165,7 +179,7 @@ void velocity::Initialize() {
  * know which one, because otherwise we may increase the output when we should
  * be decreasing.  This is called from the constructor.
  ******************************************************************************/
-void velocity::SetControllerDirection(int Direction) {
+void basic::SetControllerDirection(int Direction) {
 	if (inAuto && Direction != controllerDirection) {
 		kp = (0 - kp);
 		ki = (0 - ki);
@@ -174,4 +188,5 @@ void velocity::SetControllerDirection(int Direction) {
 	controllerDirection = Direction;
 }
 
-}; /* namespace PID */
+};
+/* namespace PID */

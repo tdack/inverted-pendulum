@@ -1,8 +1,6 @@
 /**
- * @file basic.cpp
- * @brief Threaded PID controller
- *
- * Threaded PID controller based on https://github.com/br3ttb/Arduino-PID-Library
+ * @file lqr.cpp
+ * @brief Threaded LQR controller
  *
  * @author Troy Dack
  * @date Copyright (C) 2015
@@ -12,23 +10,29 @@
  *
  **/
 
-#include <pid/basic.h>
+#include <Controller/lqr.h>
+#include <pendulum.h>
+#include <pololuSMC.h>
+#include <threadedEQEP.h>
 #include <iostream>
-#include <ratio>
-#include <string>
 
-namespace PID {
-basic::basic(double* Input, double* Output, double* SetPoint, double _kp,
-		double _ki, double _kd, int dir) :
-		myInput(Input), myOutput(Output), mySetPoint(SetPoint), inAuto(false), SampleTime(0.1) {
+
+namespace Controller {
+
+lqr::lqr(double* _pAngle, double* _pVelocity, double* _mAngle, double* _mVelocity, double* Output,
+		 double* SetPoint, double _k1, double _k2, double _k3, double _k4, int dir) :
+		pAngle(_pAngle), pVelocity(_pVelocity),
+		mAngle(_mAngle), mVelocity(_mVelocity),
+		myOutput(Output), mySetPoint(SetPoint),
+		inAuto(false), SampleTime(0.1) {
 	bExit.store(false);
 	SetOutputLimits(0, 100);
 	SetControllerDirection(dir);
-	SetTunings(_kp, _ki, _kd);
+	SetTunings(_k1, _k2, _k3, _k4);
 	lastTime = std::chrono::high_resolution_clock::now();
 }
 
-void basic::Compute() {
+void lqr::Compute() {
 	if (!inAuto)
 		return;
 	std::chrono::duration<float, std::deci> timeChange;
@@ -36,38 +40,27 @@ void basic::Compute() {
 	timeChange = (now - lastTime);
 	if (timeChange.count() >= SampleTime) {
 		/*Compute all the working error variables*/
-		double input = *myInput;
-		double error = *mySetPoint - input;
-		ITerm += (ki * error);
-		if (ITerm > outMax) {
-			ITerm = outMax;
-		} else if (ITerm < outMin) {
-			ITerm = outMin;
-		}
-		double dInput = (input - lastInput);
+		double pA = *pAngle;
+		double pV = *pVelocity;
+		double mA = *mAngle;
+		double mV = *mVelocity;
+		double u = ( (k1 * pA) + (k2 * mA) + (k3 * pV) + (k4 * mV) );
 
-		/*Compute PID Output*/
-		double output = kp * error + ITerm - kd * dInput;
+		double output = outMax / 11.7 * u;
 
 		if (output > outMax) {
 			output = outMax;
 		} else if (output < outMin) {
 			output = outMin;
 		}
+		std::cout << "lqr: " << pA << " " << pV  << " " << mA << " " << mV << " " << u << std::endl;
 		*myOutput = output;
 
-		/*Remember some variables for next time*/
-		lastInput = input;
 		lastTime = now;
-//		std::cout << timeChange.count();
-//		std::cout << "\t Input: " << std::to_string(input) << "\tError: "
-//				<< std::to_string(error) << "\t";
-//		std::cout << "Output: " << std::to_string(*myOutput) << std::endl;
 	}
-	return;
 }
 
-void basic::onStartHandler() {
+void lqr::onStartHandler() {
 	Initialize();
 	while (!bExit.load()) {
 		this->Compute();
@@ -75,43 +68,27 @@ void basic::onStartHandler() {
 	}
 }
 
-void basic::stop() {
+void lqr::stop() {
 	bExit.store(true);
 }
-
 /* SetTunings(...)*************************************************************
  * This function allows the controller's dynamic performance to be adjusted.
  * it's called automatically from the constructor, but tunings can also
  * be adjusted on the fly during normal operation
  ******************************************************************************/
-void basic::SetTunings(double Kp, double Ki, double Kd) {
-	if (Kp < 0 || Ki < 0 || Kd < 0)
-		return;
+void lqr::SetTunings(double _k1, double _k2, double _k3, double _k4) {
 
-	dispKp = Kp;
-	dispKi = Ki;
-	dispKd = Kd;
-
-	double SampleTimeInSec = ((double) SampleTime) / 1000;
-	kp = Kp;
-	ki = Ki * SampleTimeInSec;
-	kd = Kd / SampleTimeInSec;
-
-	if (controllerDirection == 1) {
-		kp = (0 - kp);
-		ki = (0 - ki);
-		kd = (0 - kd);
-	}
+	k1 = dispK1 = _k1;
+	k2 = dispK2 = _k2;
+	k3 = dispK3 = _k3;
+	k4 = dispK4 = _k4;
 }
 
 /* SetSampleTime(...) *********************************************************
  * sets the period, in Milliseconds, at which the calculation is performed
  ******************************************************************************/
-void basic::SetSampleTime(int NewSampleTime) {
+void lqr::SetSampleTime(int NewSampleTime) {
 	if (NewSampleTime > 0) {
-		double ratio = (double) NewSampleTime / 1000 / (double) SampleTime;
-		ki *= ratio;
-		kd /= ratio;
 		SampleTime = (double) NewSampleTime / 1000.0;
 	}
 }
@@ -124,7 +101,7 @@ void basic::SetSampleTime(int NewSampleTime) {
  *  want to clamp it from 0-125.  who knows.  at any rate, that can all be done
  *  here.
  **************************************************************************/
-void basic::SetOutputLimits(double Min, double Max) {
+void lqr::SetOutputLimits(double Min, double Max) {
 	if (Min >= Max)
 		return;
 	outMin = Min;
@@ -149,7 +126,7 @@ void basic::SetOutputLimits(double Min, double Max) {
  * when the transition from manual to auto occurs, the controller is
  * automatically initialized
  ******************************************************************************/
-void basic::SetMode(int Mode) {
+void lqr::SetMode(int Mode) {
 	bool newAuto = (Mode == 1);
 	if (newAuto == !inAuto) { /*we just went from manual to auto*/
 		Initialize();
@@ -161,11 +138,10 @@ void basic::SetMode(int Mode) {
  *	does all the things that need to happen to ensure a bumpless transfer
  *  from manual to automatic mode.
  ******************************************************************************/
-void basic::Initialize() {
+void lqr::Initialize() {
 	// reset lastTime in case thread wasn't run straight after being created.
 	lastTime = std::chrono::high_resolution_clock::now();
 	ITerm = *myOutput;
-	lastInput = *myInput;
 	if (ITerm > outMax) {
 		ITerm = outMax;
 	} else if (ITerm < outMin) {
@@ -174,19 +150,13 @@ void basic::Initialize() {
 }
 
 /* SetControllerDirection(...)*************************************************
- * The PID will either be connected to a DIRECT acting process (+Output leads
+ * The LQR will either be connected to a DIRECT acting process (+Output leads
  * to +Input) or a REVERSE acting process(+Output leads to -Input.)  we need to
  * know which one, because otherwise we may increase the output when we should
  * be decreasing.  This is called from the constructor.
  ******************************************************************************/
-void basic::SetControllerDirection(int Direction) {
-	if (inAuto && Direction != controllerDirection) {
-		kp = (0 - kp);
-		ki = (0 - ki);
-		kd = (0 - kd);
-	}
+void lqr::SetControllerDirection(int Direction) {
 	controllerDirection = Direction;
 }
 
-};
-/* namespace PID */
+}; /* namespace CONTROLLER */

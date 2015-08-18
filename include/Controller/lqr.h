@@ -1,5 +1,5 @@
 /**
- *! @file velocity.h
+ *! @file lqr.h
  *! Threaded PID controller header file
  *!
  *! @author troy
@@ -22,28 +22,26 @@
  **/
 
 
-#ifndef INCLUDE_PID_VELOCITY_H_
-#define INCLUDE_PID_VELOCITY_H_
+#ifndef INCLUDE_CONTROLLER_LQR_H_
+#define INCLUDE_CONTROLLER_LQR_H_
 
 #include <BlackLib/BlackThread/BlackThread.h>
 #include <atomic>
 #include <cstdbool>
 #include <chrono>
 
-class threadedEQEP;
+namespace Controller {
 
-namespace PID {
-
-class velocity : public BlackLib::BlackThread {
+class lqr : public BlackLib::BlackThread {
 
 public:
 
 	/**
 	 * Proportional-Integral-Derivative controller for inverted pendulum
 	 *
-	 *	Uses pendulum angle and velocity
+	 *	Uses pendulum angle and lqr
 	 */
-	velocity(double* Angle, double* Velocity, double* Output, double* SetPoint, double _kp,	double _ki, double _kd, int dir);
+	lqr(double* PendulumAngle, double* PendulumVelocity, double* MotorAngle, double* MotorVelocity, double* Output, double* SetPoint, double _k1,	double _k2, double _k3, double _k4, int dir);
 
 	void SetMode(int Mode); // * sets pid-new to either Manual (0) or Auto (non-0)
 
@@ -51,10 +49,8 @@ public:
 												  //it's likely the user will want to change this depending on
 												  //the application
 
-												  //available but not commonly used functions ********************************************************
-	void SetTunings(double kp, double ki, // * While most users will set the tunings once in the
-			double kd); //   constructor, this function gives the user the option
-						//   of changing tunings during runtime for Adaptive control
+// available but not commonly used functions ********************************************************
+	void SetTunings(double k1, double k2, double k3, double k4);
 
 	void SetControllerDirection(int);// * Sets the Direction, or "Action" of the controller. DIRECT
 									 //   means the output will increase when error is positive. REVERSE
@@ -69,14 +65,17 @@ public:
 	 * functions query the internal state of the PID.  they're here for display
 	 * purposes.  this are the functions the PID Front-end uses for example
 	 ******************************************************************************/
-	inline double GetKp() {
-		return dispKp;
+	inline double GetK1() {
+		return dispK1;
 	}
-	inline double GetKi() {
-		return dispKi;
+	inline double GetK2() {
+		return dispK2;
 	}
-	inline double GetKd() {
-		return dispKd;
+	inline double GetK3() {
+		return dispK3;
+	}
+	inline double GetK4() {
+		return dispK4;
 	}
 	inline int GetMode() {
 		return inAuto ? 1 : 0;
@@ -95,18 +94,22 @@ private:
 
 	std::atomic<bool> bExit; 	// flag to tell thread to quit
 
-	double dispKp;				// * we'll hold on to the tuning parameters in user-entered
-	double dispKi;				//   format for display purposes
-	double dispKd;				//
+	double dispK1;				// * we'll hold on to the tuning parameters in user-entered
+	double dispK2;				//   format for display purposes
+	double dispK3;				//
+	double dispK4;				//
 
-	double kp;                  // * (P)roportional Tuning Parameter
-	double ki;                  // * (I)ntegral Tuning Parameter
-	double kd;                  // * (D)erivative Tuning Parameter
+	double k1;
+	double k2;
+	double k3;
+	double k4;
 
 	int controllerDirection;
 
-	double *myAngle;  // * Pointers to the Input, Output, and Setpoint variables
-	double *myVelocity;
+	double *pAngle;  // * Pendulum angle & velocity
+	double *pVelocity;
+	double *mAngle;  // * Motor angle & velocity
+	double *mVelocity;
 	double *myOutput; //   This creates a hard link between the variables and the
 	double *mySetPoint; //   pid, freeing the user from having to constantly tell us
 						//   what these values are.  with pointers we'll just know.
@@ -118,5 +121,5 @@ private:
 	double SampleTime;
 	double outMin, outMax;
 };
-}; /* namespace PID*/
-#endif /* INCLUDE_PID_VELOCITY_H_ */
+}; /* namespace CONTROLLER */
+#endif /* INCLUDE_CONTROLLER_LQR_H_ */

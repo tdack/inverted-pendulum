@@ -21,15 +21,15 @@
  *
  **/
 
-#ifndef INCLUDE_PID_BASIC_H_
-#define INCLUDE_PID_BASIC_H_
+#ifndef INCLUDE_CONTROLLER_BASIC_H_
+#define INCLUDE_CONTROLLER_BASIC_H_
 
 #include <BlackLib/BlackThread/BlackThread.h>
 #include <atomic>
 #include <chrono>
 #include <cstdbool>
 
-namespace PID {
+namespace Controller {
 class basic: public BlackLib::BlackThread {
 
 public:
@@ -115,5 +115,5 @@ private:
 
 }
 ;
-/* namespace PID */
-#endif /* INCLUDE_PID_BASIC_H_ */
+/* namespace Controller */
+#endif /* INCLUDE_CONTROLLER_BASIC_H_ */
