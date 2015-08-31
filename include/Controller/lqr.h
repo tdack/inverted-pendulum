@@ -1,6 +1,6 @@
 /**
  *! @file lqr.h
- *! Threaded PID controller header file
+ *! Threaded Linear Quadrature Regulator controller header file
  *!
  *! @author troy
  *! @date Copyright (C) 2015
@@ -37,7 +37,7 @@ class lqr : public BlackLib::BlackThread {
 public:
 
 	/**
-	 * Proportional-Integral-Derivative controller for inverted pendulum
+	 * Linear Quadrature Regulator controller for inverted pendulum
 	 *
 	 *	Uses pendulum angle and lqr
 	 */

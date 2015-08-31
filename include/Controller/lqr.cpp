@@ -1,6 +1,6 @@
 /**
  * @file lqr.cpp
- * @brief Threaded LQR controller
+ * @brief Threaded Linear Quadrature Regulator controller
  *
  * @author Troy Dack
  * @date Copyright (C) 2015
