@@ -12,7 +12,7 @@
 
 #include <Controller/lqr.h>
 #include <pendulum.h>
-#include <pololuSMC.h>
+#include <Pololu/pololuSMC.h>
 #include <threadedEQEP.h>
 #include <iostream>
 

@@ -1,5 +1,5 @@
 /**
- *! @file pololu_serial.cpp
+ *! @file pololuSMC.cpp
  *! Pololu Simple Motor Controller (SMC)
  *!
  *! @author Troy Dack
@@ -22,7 +22,7 @@
  **/
 
 #include <fcntl.h>
-#include <pololuSMC.h>
+#include <Pololu/pololuSMC.h>
 #include <termios.h> // POSIX terminal control definitions
 #include <unistd.h>
 #include <cstdio>
