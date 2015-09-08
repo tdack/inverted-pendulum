@@ -24,7 +24,7 @@ lqr::lqr(double* _pAngle, double* _pVelocity, double* _mAngle, double* _mVelocit
 		pAngle(_pAngle), pVelocity(_pVelocity),
 		mAngle(_mAngle), mVelocity(_mVelocity),
 		myOutput(Output), mySetPoint(SetPoint),
-		inAuto(false), SampleTime(0.1) {
+		inAuto(false), SampleTime(20) {
 	bExit.store(false);
 	SetOutputLimits(0, 100);
 	SetControllerDirection(dir);
@@ -53,7 +53,7 @@ void lqr::Compute() {
 		} else if (output < outMin) {
 			output = outMin;
 		}
-		std::cout << "lqr: " << pA << " " << pV  << " " << mA << " " << mV << " " << u << std::endl;
+		std::cout << "lqr: " << pA << " " << pV  << " " << mA << " " << mV << " " << u << "  dt: " << timeChange.count() << std::endl;
 		*myOutput = output;
 
 		lastTime = now;
