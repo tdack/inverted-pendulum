@@ -12,7 +12,7 @@
  *
  * @author Limor Fried/Ladyada, Janick Bergeron, Troy Dack <troy@dack.com.au>
  * @license
- * \verbinclude "Adafruit BSD 3-Clause.txt"
+ * \verbinclude "SSD1306 - Adafruit BSD 3-Clause.txt"
  *
  * This is a library for our Monochrome OLEDs based on SSD1306 drivers
  *
