@@ -1,0 +1,11 @@
+Field=Comment~String~Comment~125|Field=Designator~String~Designator~125|Field=Footprint~String~Footprint~125|Field=LibRef~String~LibRef~136|Field=Quantity~Integer~Quantity~114|ReportField=Currency~<none>|ReportField=ProductionQuantity~1|ReportField=ProjectFileName~Inverted_Pendulum_Cape.PrjPcb|ReportField=ProjectFullPath~C:\Users\Troy\Google Drive\Electrical Engineering\4th Year\Design 4\Pendulum Cape\Imported Inverted_Pendulum_Cape.PrjPcb\Inverted_Pendulum_Cape.PrjPcb|ReportField=Title~Bill of Materials For PCB Document [Inverted_Pendulum_Cape.PcbDoc]|ReportField=TotalQuantity~17|ReportField=ReportTime~1:34:58 PM|ReportField=ReportDate~01-Sep-15|ReportField=ReportDateTime~01-Sep-15 1:34:58 PM|ReportField=OutputName~Bill of Materials|ReportField=OutputType~BOM_PartType|ReportField=GeneratorName~BOM|ReportField=GeneratorDescription~Bill of Materials|ReportField=VariantName~None|ReportField=DataSourceFileName~Inverted_Pendulum_Cape.PcbDoc|ReportField=DataSourceFullPath~C:\Users\Troy\Google Drive\Electrical Engineering\4th Year\Design 4\Pendulum Cape\Imported Inverted_Pendulum_Cape.PrjPcb\Inverted_Pendulum_Cape.PcbDoc
+1N4004|D3|DO41-10|1N4004|1
+FUSEX20MM|F1|FUSE_5MM|FUSEX20MM|1
+Vin|JP3|MOLEX-1X2|M02POLAR|1
+Regulator|JP4|1X03|M03PTH|1
+Enc2|JP5|MOLEX-1X4|M04POLAR|1
+Enc1|JP6|MOLEX-1X4|M04POLAR|1
+UART|JP7|MOLEX-1X2|M02POLAR|1
+Keys|JP8|2X5_PTH_SILK_.05|M05X20.05_IN_PTH_SILK|1
+RESISTOR1206|R1, R2, R3, R4, R5, R6, R7, R8|1206|RESISTOR1206|8
+BEAGLE_BONE_BLACK_CAPE|U$1|BEAGLE_BONE_BLACK_CAPE|BEAGLE_BONE_BLACK_CAPE|1

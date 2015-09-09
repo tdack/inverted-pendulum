@@ -1,0 +1,82 @@
+Protel Design System Design Rule Check
+PCB File : \\VBOXSVR\Imported_Inverted_Pendulum_Cape.PrjPcb\Inverted_Pendulum_Cape.PcbDoc
+Date     : 9/2/2015
+Time     : 12:22:52 PM
+
+Processing Rule : SMD Neck-Down Constraint (Percent=50%) (All)
+Rule Violations :0
+
+Processing Rule : Net Antennae (Tolerance=0mil) (All)
+Rule Violations :0
+
+Processing Rule : Silk to Silk (Clearance=10mil) (All),(All)
+Rule Violations :0
+
+Processing Rule : Silk To Solder Mask (Clearance=10mil) (IsPad),(All)
+   Violation between Track (3773mil,2041mil)(4027mil,2041mil)  Top Overlay and 
+                     Pad F1-3(3900mil,2036mil)  Multi-Layer
+   Violation between Track (3773mil,1801mil)(4027mil,1801mil)  Top Overlay and 
+                     Pad F1-4(3900mil,1806mil)  Multi-Layer
+   Violation between Track (3773mil,2358.7mil)(4027mil,2358.7mil)  Top Overlay and 
+                     Pad F1-2(3900mil,2363.7mil)  Multi-Layer
+   Violation between Track (3773mil,2598.7mil)(4027mil,2598.7mil)  Top Overlay and 
+                     Pad F1-1(3900mil,2593.7mil)  Multi-Layer
+   Violation between Track (3485mil,1550mil)(3485mil,1600mil)  Top Overlay and 
+                     Pad JP4-3(3535mil,1575mil)  Multi-Layer
+   Violation between Track (3510mil,1525mil)(3560mil,1525mil)  Top Overlay and 
+                     Pad JP4-3(3535mil,1575mil)  Multi-Layer
+   Violation between Track (3510mil,1625mil)(3560mil,1625mil)  Top Overlay and 
+                     Pad JP4-3(3535mil,1575mil)  Multi-Layer
+   Violation between Track (3610mil,1525mil)(3660mil,1525mil)  Top Overlay and 
+                     Pad JP4-2(3635mil,1575mil)  Multi-Layer
+   Violation between Track (3610mil,1625mil)(3660mil,1625mil)  Top Overlay and 
+                     Pad JP4-2(3635mil,1575mil)  Multi-Layer
+   Violation between Track (3785mil,1550mil)(3785mil,1600mil)  Top Overlay and 
+                     Pad JP4-1(3735mil,1575mil)  Multi-Layer
+   Violation between Track (3710mil,1525mil)(3760mil,1525mil)  Top Overlay and 
+                     Pad JP4-1(3735mil,1575mil)  Multi-Layer
+   Violation between Track (3710mil,1625mil)(3760mil,1625mil)  Top Overlay and 
+                     Pad JP4-1(3735mil,1575mil)  Multi-Layer
+Rule Violations :12
+
+Processing Rule : Minimum Solder Mask Sliver (Gap=10mil) (All),(All)
+Rule Violations :0
+
+Processing Rule : Hole To Hole Clearance (Gap=10mil) (All),(All)
+Rule Violations :0
+
+Processing Rule : Height Constraint (Min=0mil) (Max=1000mil) (Prefered=500mil) (All)
+Rule Violations :0
+
+Processing Rule : Hole Size Constraint (Min=1mil) (Max=100mil) (All)
+   Violation between Hole Size Constraint (125mil > 100mil) : Pad U$1-1(1575mil,3025mil)  Multi-Layer
+   Violation between Hole Size Constraint (125mil > 100mil) : Pad U$1-1(4175mil,2900mil)  Multi-Layer
+   Violation between Hole Size Constraint (125mil > 100mil) : Pad U$1-1(4175mil,1250mil)  Multi-Layer
+   Violation between Hole Size Constraint (125mil > 100mil) : Pad U$1-1(1575mil,1125mil)  Multi-Layer
+Rule Violations :4
+
+Processing Rule : Un-Routed Net Constraint ( (All) )
+Rule Violations :0
+
+Processing Rule : Short-Circuit Constraint (Allowed=No) (All),(All)
+Rule Violations :0
+
+Processing Rule : Power Plane Connect Rule(Relief Connect )(Expansion=20mil) (Conductor Width=39.37mil) (Air Gap=10mil) (Entries=4) (All)
+Rule Violations :0
+
+Processing Rule : Width Constraint (Min=10mil) (Max=196.85mil) (Preferred=10mil) (All)
+Rule Violations :0
+
+Processing Rule : Clearance Constraint (Gap=5mil) (All),(All)
+   Violation between Area Fill (3790mil,1855mil) (4015mil,2030mil)  Keep-Out Layer and 
+                     Pad F1-4(3900mil,1806mil)  Multi-Layer
+   Violation between Area Fill (3790mil,2375mil) (4015mil,2545mil)  Keep-Out Layer and 
+                     Pad F1-1(3900mil,2593.7mil)  Multi-Layer
+Rule Violations :2
+
+Processing Rule : Width Constraint (Min=10mil) (Max=40mil) (Preferred=20mil) (InNet('NetF1_1') Or InNet('NetD3_C') Or InNet('VIN'))
+Rule Violations :0
+
+
+Violations Detected : 18
+Time Elapsed        : 00:00:00
