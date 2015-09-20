@@ -19,7 +19,7 @@
 
 namespace Controller {
 
-velocity::velocity(double* Angle, double* Velocity, double* Output, double* SetPoint, double _kp,	double _ki, double _kd, int dir) :
+velocity::velocity(double* Angle, double* Velocity, double* Output, double* SetPoint, double _kp, double _ki, double _kd, int dir) :
 		myAngle(Angle), myVelocity(Velocity), myOutput(Output), mySetPoint(SetPoint), inAuto(false), SampleTime(0.1) {
 	bExit.store(false);
 	SetOutputLimits(0, 100);
@@ -50,8 +50,15 @@ void velocity::Compute() {
 			output = outMin;
 		}
 		*myOutput = output;
-
 		lastTime = now;
+
+		std::cout << timeChange.count() << ",";
+		std::cout << std::to_string(err_p) << ",";
+		std::cout << std::to_string(err_d) << ",";
+		std::cout << std::to_string(err_i) << ",";
+		std::cout << std::to_string(u) << ",";
+		std::cout << std::to_string(output) << std::endl;
+
 	}
 }
 

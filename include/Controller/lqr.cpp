@@ -54,10 +54,15 @@ void lqr::Compute() {
 		} else if (output < outMin) {
 			output = outMin;
 		}
-		std::cout << pA << "," << pV  << "," << mA << "," << mV << "," << u << "," << timeChange.count() << std::endl;
 		*myOutput = output;
-
 		lastTime = now;
+
+		std::cout << timeChange.count() << ",";
+		std::cout << pA << ",";
+		std::cout << pV  << ",";
+		std::cout << mA << ",";
+		std::cout << mV << ",";
+		std::cout << u << std::endl;
 	}
 }
 

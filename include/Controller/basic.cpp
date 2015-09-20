@@ -18,8 +18,7 @@
 #include <string>
 
 namespace Controller {
-basic::basic(double* Input, double* Output, double* SetPoint, double _kp,
-		double _ki, double _kd, int dir) :
+basic::basic(double* Input, double* Output, double* SetPoint, double _kp, double _ki, double _kd, int dir) :
 		myInput(Input), myOutput(Output), mySetPoint(SetPoint), inAuto(false), SampleTime(0.1) {
 	bExit.store(false);
 	SetOutputLimits(0, 100);
@@ -59,10 +58,10 @@ void basic::Compute() {
 		/*Remember some variables for next time*/
 		lastInput = input;
 		lastTime = now;
-		std::cout << timeChange.count();
-		std::cout << "\t Input: " << std::to_string(input) << "\tError: "
-				<< std::to_string(error) << "\t";
-		std::cout << "Output: " << std::to_string(*myOutput) << std::endl;
+		std::cout << timeChange.count() << ",";
+		std::cout << std::to_string(input) << ",";
+		std::cout << std::to_string(error) << ",";
+		std::cout << std::to_string(*myOutput) << std::endl;
 	}
 	return;
 }
