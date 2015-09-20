@@ -39,7 +39,7 @@ public:
 	/**
 	 * Linear Quadrature Regulator controller for inverted pendulum
 	 *
-	 *	Uses pendulum angle and lqr
+	 * Uses pendulum and motor angle and velocities
 	 */
 	lqr(double* PendulumAngle, double* PendulumVelocity, double* MotorAngle, double* MotorVelocity, double* Output, double* SetPoint, double _k1,	double _k2, double _k3, double _k4, int dir);
 
@@ -115,7 +115,6 @@ private:
 						//   what these values are.  with pointers we'll just know.
 
 	std::chrono::high_resolution_clock::time_point lastTime;
-	double ITerm, lastInput;
 
 	bool inAuto;
 	double SampleTime;

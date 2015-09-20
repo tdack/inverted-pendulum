@@ -24,7 +24,8 @@ lqr::lqr(double* _pAngle, double* _pVelocity, double* _mAngle, double* _mVelocit
 		pAngle(_pAngle), pVelocity(_pVelocity),
 		mAngle(_mAngle), mVelocity(_mVelocity),
 		myOutput(Output), mySetPoint(SetPoint),
-		inAuto(false), SampleTime(20) {
+		inAuto(false), SampleTime(100)
+{
 	bExit.store(false);
 	SetOutputLimits(0, 100);
 	SetControllerDirection(dir);
@@ -53,7 +54,7 @@ void lqr::Compute() {
 		} else if (output < outMin) {
 			output = outMin;
 		}
-		std::cout << "lqr: " << pA << " " << pV  << " " << mA << " " << mV << " " << u << "  dt: " << timeChange.count() << std::endl;
+		std::cout << pA << "," << pV  << "," << mA << "," << mV << "," << u << "," << timeChange.count() << std::endl;
 		*myOutput = output;
 
 		lastTime = now;
@@ -62,6 +63,7 @@ void lqr::Compute() {
 
 void lqr::onStartHandler() {
 	Initialize();
+	std::cout << "pA,pV,mA,mV,u,dt"<< std::endl;
 	while (!bExit.load()) {
 		this->Compute();
 		yield();
@@ -113,11 +115,6 @@ void lqr::SetOutputLimits(double Min, double Max) {
 		} else if (*myOutput < outMin) {
 			*myOutput = outMin;
 		}
-		if (ITerm > outMax) {
-			ITerm = outMax;
-		} else if (ITerm < outMin) {
-			ITerm = outMin;
-		}
 	}
 }
 
@@ -141,12 +138,6 @@ void lqr::SetMode(int Mode) {
 void lqr::Initialize() {
 	// reset lastTime in case thread wasn't run straight after being created.
 	lastTime = std::chrono::high_resolution_clock::now();
-	ITerm = *myOutput;
-	if (ITerm > outMax) {
-		ITerm = outMax;
-	} else if (ITerm < outMin) {
-		ITerm = outMin;
-	}
 }
 
 /* SetControllerDirection(...)*************************************************
