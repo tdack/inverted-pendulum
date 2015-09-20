@@ -59,10 +59,10 @@ void basic::Compute() {
 		/*Remember some variables for next time*/
 		lastInput = input;
 		lastTime = now;
-//		std::cout << timeChange.count();
-//		std::cout << "\t Input: " << std::to_string(input) << "\tError: "
-//				<< std::to_string(error) << "\t";
-//		std::cout << "Output: " << std::to_string(*myOutput) << std::endl;
+		std::cout << timeChange.count();
+		std::cout << "\t Input: " << std::to_string(input) << "\tError: "
+				<< std::to_string(error) << "\t";
+		std::cout << "Output: " << std::to_string(*myOutput) << std::endl;
 	}
 	return;
 }
