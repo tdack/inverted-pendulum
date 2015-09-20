@@ -56,7 +56,7 @@ public:
 	SSD1306(BlackLib::BlackI2C *i2c, BlackLib::BlackGPIO *rst = NULL, uint8_t height = 32);
 	SSD1306(BlackLib::i2cName i2c, uint8_t slaveAddress, BlackLib::BlackGPIO* rst = NULL, uint8_t height = 32);
 
-	~SSD1306();
+	virtual ~SSD1306();
 
 	/**
 	 * @brief Initialise the display
