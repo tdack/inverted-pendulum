@@ -91,7 +91,7 @@ void threadedEQEP::onStartHandler() {
 		dt_position.store(new_pos - old_pos);
 		velocity.store(v);
 		// Need a small delay here to get velocity measurements
-		std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 	return;
 }
