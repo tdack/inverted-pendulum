@@ -38,9 +38,7 @@
 #include <Pololu/pololuSMC.h>
 
 // SSD1306 OLED
-#include <SSD1306/gfx.h>
-#include <SSD1306/rgb_driver.h>
-#include <SSD1306/ssd1306.h>
+#include <SSD1306/OLED.h>
 
 #include <rlutil.h>
 #include <sys/stat.h>
