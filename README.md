@@ -23,7 +23,7 @@ direct memory map use of them using the bbb-eqep class.
 The PyBBIO-epwmss and PyBBIO-eqep device tree overlays installed by default in 
 `/lib/firmware/` are equivalent and do not require the device tree compiler.
 
-Access to eqep1 requires disabling of the HDMI interface.  See [uEnv.txt](uEnv.txt)
+Access to eqep1 requires disabling of the HDMI interface.  See [uEnv.txt](doc/uEnv.txt)
 for an example of disabling the HDMI interface.
 
 [`load_overlays.sh`](scripts/load_overlays.sh) is a simple shell script to load the relevant overlays for the
