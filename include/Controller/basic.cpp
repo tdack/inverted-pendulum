@@ -19,7 +19,7 @@
 
 namespace Controller {
 basic::basic(double* Input, double* Output, double* SetPoint, double _kp, double _ki, double _kd, int dir) :
-		myInput(Input), myOutput(Output), mySetPoint(SetPoint), inAuto(false), SampleTime(0.1) {
+		myInput(Input), myOutput(Output), mySetPoint(SetPoint), inAuto(false), SampleTime(10) {
 	bExit.store(false);
 	SetOutputLimits(0, 100);
 	SetControllerDirection(dir);
