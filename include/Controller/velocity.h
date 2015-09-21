@@ -25,6 +25,14 @@
 #ifndef INCLUDE_CONTROLLER_VELOCITY_H_
 #define INCLUDE_CONTROLLER_VELOCITY_H_
 
+//#define DEBUG
+
+#ifdef DEBUG
+#define D(x) x
+#else
+#define D(x)
+#endif
+
 #include <BlackLib/BlackThread/BlackThread.h>
 #include <atomic>
 #include <cstdbool>

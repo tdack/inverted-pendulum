@@ -57,12 +57,12 @@ void lqr::Compute() {
 		*myOutput = output;
 		lastTime = now;
 
-		std::cout << timeChange.count() << ",";
-		std::cout << pA << ",";
-		std::cout << pV  << ",";
-		std::cout << mA << ",";
-		std::cout << mV << ",";
-		std::cout << u << std::endl;
+		D(std::cout << timeChange.count() << ",";)
+		D(std::cout << pA << ",";)
+		D(std::cout << pV  << ",";)
+		D(std::cout << mA << ",";)
+		D(std::cout << mV << ",";)
+		D(std::cout << u << std::endl;)
 	}
 }
 

@@ -52,12 +52,12 @@ void velocity::Compute() {
 		*myOutput = output;
 		lastTime = now;
 
-		std::cout << timeChange.count() << ",";
-		std::cout << std::to_string(err_p) << ",";
-		std::cout << std::to_string(err_d) << ",";
-		std::cout << std::to_string(err_i) << ",";
-		std::cout << std::to_string(u) << ",";
-		std::cout << std::to_string(output) << std::endl;
+		D(std::cout << timeChange.count() << ",";)
+		D(std::cout << std::to_string(err_p) << ",";)
+		D(std::cout << std::to_string(err_d) << ",";)
+		D(std::cout << std::to_string(err_i) << ",";)
+		D(std::cout << std::to_string(u) << ",";)
+		D(std::cout << std::to_string(output) << std::endl;)
 
 	}
 }

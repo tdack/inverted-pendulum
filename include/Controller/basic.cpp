@@ -58,10 +58,10 @@ void basic::Compute() {
 		/*Remember some variables for next time*/
 		lastInput = input;
 		lastTime = now;
-		std::cout << timeChange.count() << ",";
-		std::cout << std::to_string(input) << ",";
-		std::cout << std::to_string(error) << ",";
-		std::cout << std::to_string(*myOutput) << std::endl;
+		D(std::cout << timeChange.count() << ",";)
+		D(std::cout << std::to_string(input) << ",";)
+		D(std::cout << std::to_string(error) << ",";)
+		D(std::cout << std::to_string(*myOutput) << std::endl;)
 	}
 	return;
 }
