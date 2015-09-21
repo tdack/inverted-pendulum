@@ -2,21 +2,19 @@
 
 Some 3rd party libraries were used at various times during development.
 
-1. BlackLib
-===========
+## 1. BlackLib
 BlackLib source code is included within the repository and the required portions are included in main application.  No extra steps are required to utilise this library.
 
-2. POCO 1.6.0
-=============
+- - -
+
+## 2. POCO 1.6.0
 POCO is a large 3rd party library that offers a number of additional features.  It is used to implement a web socket server to supply parameter updates to a remote client.
 
 To utilise POCO the library needs to be compiled on both the BeagleBone Black and on the development machine.
 
 On the development machine a cross compiler is required to produce ARM binaries that can be linked to produce an executable for the BeagleBone.
 
-2.1 Building POCO for the development environment (cross compiler)
-==================================================================
-
+### 2.1 Building POCO for the development environment (cross compiler)
 Download and unzip the POCO-1.6.0 source code from poco.org.  Add the following as `poco-1.6.0/build/config/BeagleBoneBlack`
 
 ```
@@ -100,12 +98,15 @@ Configure the source with:
     ./configure --config=BeagleBoneBlack --no-tests --no-samples --prefix=/usr/arm-linux-gnueabihf/
 
 Compile the library:
+
     make
 
 Install the library:
+
     sudo make install
 
 The object files and headers will be installed in:
+
     /usr/arm-linux-gnueabihf/lib
     /usr/arm-linux-gnueabihf/include/Poco
 
