@@ -15,7 +15,7 @@ To utilise POCO the library needs to be compiled on both the BeagleBone Black an
 On the development machine a cross compiler is required to produce ARM binaries that can be linked to produce an executable for the BeagleBone.
 
 ### 2.1 Building POCO for the development environment (cross compiler)
-Download and unzip the POCO-1.6.0 source code from poco.org.  Add the following as `poco-1.6.0/build/config/BeagleBoneBlack`
+Download and unzip the POCO-1.6.0 source code from [pocoproject.org](http://pocoproject.org/releases/).  Add the following as `poco-1.6.0/build/config/BeagleBoneBlack`
 
 ```
 #
@@ -95,6 +95,7 @@ SYSLIBS  = -lpthread -ldl -lrt
 ```
 
 Configure the source with:
+
     ./configure --config=BeagleBoneBlack --no-tests --no-samples --prefix=/usr/arm-linux-gnueabihf/
 
 Compile the library:
