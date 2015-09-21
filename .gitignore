@@ -37,3 +37,5 @@ src/doxygen_sqlite3.db
 /Pendulum/
 /Release/
 /Websocket/
+doc/html/
+doc/doxygen_sqlite3.db
