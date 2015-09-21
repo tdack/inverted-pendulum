@@ -10,14 +10,28 @@
  *
  **/
 
+#define DEBUG
+
 #include <pendulum.h>
 #include <overlays.h>
+#include <thread>
 
 #include <Controller/basic.h>
 #include <Controller/velocity.h>
 #include <Controller/lqr.h>
 
 using namespace std;
+
+void buzzer(int f, int d) {
+	BlackLib::BlackPWM buzzerPWM(BlackLib::P8_19);
+
+	buzzerPWM.setDutyPercent(50.0);
+	buzzerPWM.setPeriodTime(1/f, BlackLib::second);
+	buzzerPWM.setRunState(BlackLib::run);
+	std::this_thread::sleep_for(std::chrono::milliseconds(d));
+	buzzerPWM.setRunState(BlackLib::stop);
+	return;
+}
 
 void controller(double kp, double ki, double kd, int dir) {
 
@@ -59,8 +73,8 @@ void controller(double kp, double ki, double kd, int dir) {
 	threadedEQEP *motorEQEP = new threadedEQEP(MOTOR_EQEP, MOTOR_PPR);
 
 	// Create a new controller
-	Controller::basic *ctrl = new Controller::basic(&pendulumAngle, &motorSpeed, &setAngle, kp, ki, kd, dir);
-//	Controller::velocity *ctrl = new Controller::velocity(&pendulumAngle,&pendulumVelocity, &motorSpeed, &setAngle, kp, ki, kd, dir);
+//	Controller::basic *ctrl = new Controller::basic(&pendulumAngle, &motorSpeed, &setAngle, kp, ki, kd, dir);
+	Controller::velocity *ctrl = new Controller::velocity(&pendulumAngle,&pendulumVelocity, &motorSpeed, &setAngle, kp, ki, kd, dir);
 //	Controller::lqr *ctrl = new Controller::lqr(&pendulumAngle, &pendulumVelocity,
 //										&motorAngle, &motorVelocity,
 //										&motorSpeed, &setAngle,
@@ -79,6 +93,7 @@ void controller(double kp, double ki, double kd, int dir) {
 	// Start the EQEP threads running
 	pendulumEQEP->run();
 	motorEQEP->run();
+	buzzer(3500, 25);
 
 	// Wait until the pendulum is @ 180 +-1 deg
 	// Assumes pendulum starts hanging vertically down
@@ -100,10 +115,12 @@ void controller(double kp, double ki, double kd, int dir) {
 
 	// start the controller thread
 	ctrl->run();
-
+	buzzer(3500, 15);
 	outLED->fx->setCursor(2,4);
 	outLED->fx->write("Controller Running ");
 	std::cout << "Controller Running ...." << std::endl;
+	buzzer(3500, 15);
+
 	start = lastTime = std::chrono::high_resolution_clock::now();
 	// Let the threads run for about 90 seconds
 	do {
@@ -111,32 +128,28 @@ void controller(double kp, double ki, double kd, int dir) {
 		timeChange = (now - lastTime);
 		// Get pendulum angle and velocity
 		pendulumAngle = pendulumEQEP->getAngle();
-		pendulumAngleDeg = pendulumAngle * 180 / M_PI;
+		pendulumAngleDeg = pendulumAngle * 180 / M_PI; // convert radian to degrees
 		pendulumVelocity = pendulumEQEP->getVelocity();
 		// Get motor angle and velocity
 		motorAngle = motorEQEP->getAngleDeg();
 		motorVelocity = motorEQEP->getVelocityDeg();
 
-		// Motor doesn't move unless speed > 300
+		// Motor doesn't move unless speed > 350
 		setSpeed = ( motorSpeed > 0 ? 1 : -1) * 350 + (int)motorSpeed;
 
-
 		// stop the motor if we deviate too far from vertical
-		if (abs(pendulumAngleDeg) > 30) { // convert radian to degrees
-			SMC->SetTargetSpeed(0);
-		} else {
-			SMC->SetTargetSpeed(setSpeed);
-		}
+		SMC->SetTargetSpeed( ((abs(pendulumAngleDeg) > 30) ? 0 : setSpeed) );
 
 		// Use threaded SSD1306 so that screen updates don't slow down control loop
 		outLED->write(18,24, to_string(pendulumAngleDeg).c_str());
-		outLED->write(18,32, to_string(motorEQEP->getAngleDeg()).c_str());
+		outLED->write(18,32, to_string(motorAngle).c_str());
 		outLED->write(18,40, to_string(setSpeed).c_str());
 		outLED->write(-1,-1, "   ");
 		outLED->run();
 		lastTime = now;
 		runTime = (now - start);
 	} while (runTime.count() < 90);
+	buzzer(5000, 25);
 
 	SMC->SetTargetSpeed(0);
 	outLED->stop();
