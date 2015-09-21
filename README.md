@@ -13,7 +13,7 @@ The BeagleBone Black is interfaced to the following peripherals:
   
 The encoders are read via the built in eQEP (Enhanced Quadrature Encoder Pulse) modules on the BeagleBone Black
 
-See [header_pinout](header_pinout.md) for connections used.
+See [header_pinout](doc/header_pinout.md) for connections used.
 
 ## Device Tree Overlays
 
@@ -26,7 +26,7 @@ The PyBBIO-epwmss and PyBBIO-eqep device tree overlays installed by default in
 Access to eqep1 requires disabling of the HDMI interface.  See [uEnv.txt](uEnv.txt)
 for an example of disabling the HDMI interface.
 
-[`load_overlays.sh`](load_overlays.sh) is a simple shell script to load the relevant overlays for the
+[`load_overlays.sh`](scripts/load_overlays.sh) is a simple shell script to load the relevant overlays for the
 peripherals that are being used on the BBB.
 
 ## Third Party Libraries
