@@ -37,12 +37,12 @@ void controller(double kp, double ki, double kd, int dir) {
 
 	// Variables that will be used to pass data to/from controller
 	double pendulumAngle = 0;
+	double pendulumAngleDeg = 0;
 	double pendulumVelocity =0;
 	double motorAngle = 0;
 	double motorVelocity =0;
 	double motorSpeed = 0;
 	double setAngle = 0;
-	int count = 0;
 	int setSpeed;
 
 	// Measure time in processing loop
@@ -59,18 +59,22 @@ void controller(double kp, double ki, double kd, int dir) {
 	threadedEQEP *motorEQEP = new threadedEQEP(MOTOR_EQEP, MOTOR_PPR);
 
 	// Create a new controller
-//	Controller::basic *ctrl = new Controller::basic(&pendulumAngle, &motorSpeed, &setAngle, kp, ki, kd, dir);
-	Controller::velocity *ctrl = new Controller::velocity(&pendulumAngle,&pendulumVelocity, &motorSpeed, &setAngle, kp, ki, kd, dir);
+	Controller::basic *ctrl = new Controller::basic(&pendulumAngle, &motorSpeed, &setAngle, kp, ki, kd, dir);
+//	Controller::velocity *ctrl = new Controller::velocity(&pendulumAngle,&pendulumVelocity, &motorSpeed, &setAngle, kp, ki, kd, dir);
 //	Controller::lqr *ctrl = new Controller::lqr(&pendulumAngle, &pendulumVelocity,
 //										&motorAngle, &motorVelocity,
 //										&motorSpeed, &setAngle,
 //										-23.1455, 126.3112, -5.7435, 7.5213, // LQR constants
 //										dir);
 
+	std::cout << "Using " << "Basic" << " controller" << std::endl;
+
 	// Create a Simple Motor Controller object
 	Pololu::SMC *SMC = new Pololu::SMC(POLOLU_TTY);
 	// Stop the motor
 	SMC->SetTargetSpeed(0);
+	std::cout << "Battery Voltage: " << SMC->GetVariable(23)/1000.0 << "V" << std::endl;
+	cout << "Done!" << endl;
 
 	// Start the EQEP threads running
 	pendulumEQEP->run();
@@ -107,36 +111,34 @@ void controller(double kp, double ki, double kd, int dir) {
 		timeChange = (now - lastTime);
 		// Get pendulum angle and velocity
 		pendulumAngle = pendulumEQEP->getAngle();
+		pendulumAngleDeg = pendulumAngle * 180 / M_PI;
 		pendulumVelocity = pendulumEQEP->getVelocity();
 		// Get motor angle and velocity
 		motorAngle = motorEQEP->getAngleDeg();
 		motorVelocity = motorEQEP->getVelocityDeg();
 
 		// Motor doesn't move unless speed > 300
-		setSpeed = ( motorSpeed > 0 ? 1 : -1) * 300 + (int)motorSpeed;
+		setSpeed = ( motorSpeed > 0 ? 1 : -1) * 350 + (int)motorSpeed;
+
 
 		// stop the motor if we deviate too far from vertical
-		if (abs(pendulumAngle * 180 / M_PI) > 25) { // convert radian to degrees
-//		if (abs(pendulumAngle) > 25) {
+		if (abs(pendulumAngleDeg) > 30) { // convert radian to degrees
 			SMC->SetTargetSpeed(0);
 		} else {
 			SMC->SetTargetSpeed(setSpeed);
 		}
 
 		// Use threaded SSD1306 so that screen updates don't slow down control loop
-		outLED->write(18,24, to_string(pendulumEQEP->getAngleDeg()).c_str());
+		outLED->write(18,24, to_string(pendulumAngleDeg).c_str());
 		outLED->write(18,32, to_string(motorEQEP->getAngleDeg()).c_str());
 		outLED->write(18,40, to_string(setSpeed).c_str());
 		outLED->write(-1,-1, "   ");
-		outLED->write(110,54, to_string(count).c_str());
-		outLED->write(-1, -1, "  ");
 		outLED->run();
 		lastTime = now;
 		runTime = (now - start);
 	} while (runTime.count() < 90);
 
 	SMC->SetTargetSpeed(0);
-
 	outLED->stop();
 	ctrl->stop();
 	pendulumEQEP->stop();
@@ -152,6 +154,8 @@ void controller(double kp, double ki, double kd, int dir) {
 	delete pendulumEQEP;
 	delete motorEQEP;
 
+	SMC->SetTargetSpeed(0);
+	std::cout << "Battery Voltage: " << SMC->GetVariable(23)/1000.0 << "V" << std::endl;
 	cout << "Done!" << endl;
 	return;
 }
