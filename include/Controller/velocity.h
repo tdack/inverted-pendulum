@@ -39,75 +39,150 @@
 #include <chrono>
 
 namespace Controller {
-
 class velocity : public BlackLib::BlackThread {
 
 public:
 
 	/**
-	 * Proportional-Integral-Derivative controller for inverted pendulum
+	 * @brief Proportional-Integral-Derivative controller for inverted pendulum
 	 *
-	 *	Uses pendulum angle and velocity
+	 *@description Uses pendulum angle and velocity to determine motor speed and direction
+	 *
+	 * @param[in] Angle	angle of the pendulum
+	 * @param[in] Velocity velocity of the pendulum
+	 * @param[out] Output motor speed
+	 * @param[in] SetPoint target for controller
+	 * @param[in] _kp Proportional constant
+	 * @param[in] _ki Integral constant
+	 * @param[in] _kd Derivative constant
+	 * @param[in] dir Direction controller is to operate in. 0=normal, 1=inverse
 	 */
 	velocity(double* Angle, double* Velocity, double* Output, double* SetPoint, double _kp,	double _ki, double _kd, int dir);
 
+	/*!
+	 * @brief Set Controller operating mode
+	 * @description In auto mode the controller will alter the Output to drive towards
+	 * 				the SetPoint.
+	 * 				In manual mode the controller is disabled and control of the Output
+	 * 				is handled external to the controller
+	 *
+	 * @param[in] Mode controller mode 0=manual, 1=auto
+	 */
 	void SetMode(int Mode); // * sets pid-new to either Manual (0) or Auto (non-0)
 
-	void SetOutputLimits(double Min, double Max); //clamps the output to a specific range. 0-255 by default, but
-												  //it's likely the user will want to change this depending on
-												  //the application
+	/*!
+	 * @brief Set output limits for controller
+	 * @description Clamps the output to a specific range. 0-255 by default, but
+	 *				it's likely the user will want to change this depending on
+	 * 				the application
+	 *
+	 * @param[in] Min Minimum limit
+	 * @param[out] Max Maximum limit
+	 */
+	void SetOutputLimits(double Min, double Max);
 
-												  //available but not commonly used functions ********************************************************
-	void SetTunings(double kp, double ki, // * While most users will set the tunings once in the
-			double kd); //   constructor, this function gives the user the option
-						//   of changing tunings during runtime for Adaptive control
+	/*!
+	 * @brief Alter the PID parameters
+	 * @description While most users will set the tunings once in the
+	 *				constructor, this function gives the user the option
+	 *				of changing tunings during runtime for Adaptive control
+	 *
+	 * @param[in] kp Proportional constant
+	 * @param[in] ki Integral constant
+	 * @param[in] kd Derivative constant
+	 */
+	void SetTunings(double kp, double ki, double kd);
 
-	void SetControllerDirection(int);// * Sets the Direction, or "Action" of the controller. DIRECT
-									 //   means the output will increase when error is positive. REVERSE
-									 //   means the opposite.  it's very unlikely that this will be needed
-									 //   once it is set in the constructor.
+	/*!
+	 * @brief Set controller direction
+	 * @description Sets the Direction, or "Action" of the controller. DIRECT
+	 *				means the output will increase when error is positive. REVERSE
+	 *				means the opposite.  it's very unlikely that this will be needed
+	 *				once it is set in the constructor.
+	 *
+	 * @param[in] direction
+	 */
+	void SetControllerDirection(int);
 
-	void SetSampleTime(int); // * sets the frequency, in Milliseconds, with which
-							 //   the pid-new calculation is performed.  default is 100
+	/*!
+	 * @brief Set sample time for PID calculations
+	 * @description Sets the frequency, in milliseconds, with which
+	 *				the pid-new calculation is performed.  Default is 100
+	 *
+	 * @param[in] frequency in milliseconds
+	 */
+	void SetSampleTime(int);
 
-	/* Status Funcions*************************************************************
-	 * Just because you set the Kp=-1 doesn't mean it actually happened.  these
-	 * functions query the internal state of the PID.  they're here for display
-	 * purposes.  this are the functions the PID Front-end uses for example
-	 ******************************************************************************/
+	/*!
+	 * @brief Get the value of the Proportional constant
+	 * @return
+	 */
 	inline double GetKp() {
 		return dispKp;
 	}
+
+	/*!
+	 * @brief Get the value of the Integral constant
+	 * @return
+	 */
 	inline double GetKi() {
 		return dispKi;
 	}
+
+	/*!
+	 * @brief Get the value of the Derivativeconstant
+	 * @return
+	 */
 	inline double GetKd() {
 		return dispKd;
 	}
+
+	/*!
+	 * @brief Get the operating mode of the controller
+	 * @return
+	 */
 	inline int GetMode() {
 		return inAuto ? 1 : 0;
 	}
+
+	/*!
+	 * @brief Get the direction of the controller
+	 * @return
+	 */
 	inline int GetDirection() {
 		return controllerDirection;
 	}
 
-	void onStartHandler();  // called by run() to do the work in the thread
+    /*!
+     * @brief Thread's start handler function.
+	 */
+	void onStartHandler();
 
-	void stop();			// stops the thread running.
+	/*!
+	 * @brief Stops the thread running
+	 */
+	void stop();
 
 private:
+	/*!
+	 * @brief Initialise all parameters to ensure smooth transfer from manul to automatic
+	 */
 	void Initialize();
-	void Compute(); // does the actual PID calculations
 
-	std::atomic<bool> bExit; 	// flag to tell thread to quit
+	/*!
+	 * @brief Main loop that handle PID calculations
+	 */
+	void Compute();
 
-	double dispKp;				// * we'll hold on to the tuning parameters in user-entered
-	double dispKi;				//   format for display purposes
-	double dispKd;				//
+	std::atomic<bool> bExit; 	/*!< flag to tell thread to quit */
 
-	double kp;                  // * (P)roportional Tuning Parameter
-	double ki;                  // * (I)ntegral Tuning Parameter
-	double kd;                  // * (D)erivative Tuning Parameter
+	double dispKp;
+	double dispKi;
+	double dispKd;
+
+	double kp;                  /*!< (P)roportional Tuning Parameter */
+	double ki;                  /*!< (I)ntegral Tuning Parameter */
+	double kd;                  /*!< (D)erivative Tuning Parameter */
 
 	int controllerDirection;
 
@@ -123,6 +198,6 @@ private:
 	bool inAuto;
 	double SampleTime;
 	double outMin, outMax;
-};
+}; /* class VELOCITY */
 }; /* namespace CONTROLLER */
 #endif /* INCLUDE_CONTROLLER_VELOCITY_H_ */

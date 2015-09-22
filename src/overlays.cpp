@@ -1,6 +1,6 @@
 /**
  * @file
- * Check that device tree overlays are loaded, if not load them!
+ * @brief Check that device tree overlays are loaded, if not load them!
  *
  * @author Troy Dack <troy@dack.com.au>
  * @date Copyright (C) 2015

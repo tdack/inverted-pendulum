@@ -22,6 +22,11 @@
 
 using namespace std;
 
+/*! @brief Set frequency and output duration for PWM
+*
+* @param f Frequency in Hz
+* @param d Duration in milliseconds
+*/
 void buzzer(int f, int d) {
 	BlackLib::BlackPWM buzzerPWM(BlackLib::P8_19);
 
@@ -33,6 +38,16 @@ void buzzer(int f, int d) {
 	return;
 }
 
+/*!
+ * @brief Main controller loop
+ * @description Initialises display, eQEPs and controller.  Waits for user to raise pendulum
+ *  			then runs main control loop and sets motor speed based on controller output
+ *
+ * @param kp Proportional constant for PID controller
+ * @param ki Integral constant for PID controller
+ * @param kd Derivative constant for PID controller
+ * @param dir Direction (0 or 1) that controller should operate in.
+ */
 void controller(double kp, double ki, double kd, int dir) {
 
 	// Initialise display

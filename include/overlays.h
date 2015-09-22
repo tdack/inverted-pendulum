@@ -32,6 +32,12 @@
 #include <map>
 #include <rlutil.h>
 
+/*!
+ * @brief Ensure required device tree overlays are loaded
+ *
+ * @return True if loading overlays was successful
+ * 		   False if loading overlays failed
+ */
 bool checkOverlays();
 
 #endif /* INCLUDE_OVERLAYS_H_ */
