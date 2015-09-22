@@ -1,20 +1,31 @@
 #!/bin/bash
 
+usage() {
+	echo "Usage:"
+	echo "	./vm-sharing bbb"
+	echo "		Configure the BeagleBone Black to access the internet via usb"
+	echo ""
+	echo "	./vm-sharing vm <dev>"
+	echo "		Configure the host machine to share the internet on device <dev> with the BeagleBone Black"
+}
 
 case $1 in
   bbb)
-	sudo ip route add default gw 192.168.7.1
+	sudo ip route add default via 192.168.7.1
 	if grep -Fq nameserver /etc/resolv.conf
 	then
+		echo "Not altering resolv.conf"
 	else
 		echo "namserver 8.8.8.8" >> /etc/resolv.conf
 	fi
 	;;
   vm)
-	sudo ip addr add 192.168.7.1 dev eth1
-	sudo ip route add 192.168.7.0/24 dev eth1
+	sudo ip addr add 192.168.7.1 dev $2
+	sudo ip route add 192.168.7.0/24 dev $2
 	sudo iptables -A POSTROUTING -t nat -j MASQUERADE
 	echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward > /dev/null
 	;;
+  *)
+	usage;
 esac
 
