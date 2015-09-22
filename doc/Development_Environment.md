@@ -59,7 +59,8 @@ When using Eclipse it is easier to simply specify the compiler as `arm-linux-gnu
 ####6. Install a Java Runtime Environment (JRE) for Eclipse
 Eclipse is written in Java and requires a suitable Java Runtime Environment (JRE).  The one that may be installed by default in Debian probably won't play nicely with Eclipse.  The easiest thing to do is install the latest JRE direct from Oracle (formerly Sun).
 
-Head over to [www.java.com](http://www.java.com) and find the latest installer for Linux, eg: http://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html.  You want the Linux x64 .tar.gz file.
+Head over to [www.java.com](http://www.java.com) and find the latest installer for Linux
+> eg: http://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html.  You want the Linux x64 .tar.gz file.
 
 	user@debian:~$ wget http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jre-8u60-linux-x64.tar.gz
 	user@debian:~$ sudo mkdir /usr/java
