@@ -6,7 +6,7 @@
  * @date Copyright (C) 2015
  *
  * @license
- * \verbinclude "Troy Dack GPL-2.0.txt"
+ * \verbinclude "Troy Dack - GPL-2.0.txt"
  *
  **/
 
@@ -88,8 +88,8 @@ void controller(double kp, double ki, double kd, int dir) {
 	threadedEQEP *motorEQEP = new threadedEQEP(MOTOR_EQEP, MOTOR_PPR);
 
 	// Create a new controller
-//	Controller::basic *ctrl = new Controller::basic(&pendulumAngle, &motorSpeed, &setAngle, kp, ki, kd, dir);
-	Controller::velocity *ctrl = new Controller::velocity(&pendulumAngle,&pendulumVelocity, &motorSpeed, &setAngle, kp, ki, kd, dir);
+	Controller::basic *ctrl = new Controller::basic(&pendulumAngle, &motorSpeed, &setAngle, kp, ki, kd, dir);
+//	Controller::velocity *ctrl = new Controller::velocity(&pendulumAngle,&pendulumVelocity, &motorSpeed, &setAngle, kp, ki, kd, dir);
 //	Controller::lqr *ctrl = new Controller::lqr(&pendulumAngle, &pendulumVelocity,
 //										&motorAngle, &motorVelocity,
 //										&motorSpeed, &setAngle,
