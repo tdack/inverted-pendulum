@@ -12,7 +12,7 @@
  *
  * @author Limor Fried/Ladyada, Janick Bergeron, Troy Dack <troy@dack.com.au>
  * @license
- * \verbinclude "Adafruit BSD 3-Clause.txt"
+ * \verbinclude SSD1306 - Adafruit BSD 3-Clause.txt"
  *
  * This is a our graphics core library, for all our displays.
  * We'll be adapting all the existing libaries to use this core to make
