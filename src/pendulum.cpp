@@ -52,6 +52,7 @@ void controller(double kp, double ki, double kd, int dir) {
 
 	// Initialise display
 	SSD1306::OLED *outLED = new SSD1306::OLED();
+	outLED->setPriority(BlackLib::BlackThread::PriorityLOWEST);
 
 	// Display initial message
 	outLED->fx->clearScreen();
@@ -86,6 +87,9 @@ void controller(double kp, double ki, double kd, int dir) {
 	// Create new EQEPs object to monitor the pendulum & motor position
 	threadedEQEP *pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, ENCODER_PPR);
 	threadedEQEP *motorEQEP = new threadedEQEP(MOTOR_EQEP, MOTOR_PPR);
+
+	pendulumEQEP->setPriority(BlackLib::BlackThread::PriorityHIGH);
+	motorEQEP->setPriority(BlackLib::BlackThread::PriorityHIGH);
 
 	// Create a new controller
 	Controller::basic *ctrl = new Controller::basic(&pendulumAngle, &motorSpeed, &setAngle, kp, ki, kd, dir);
@@ -122,7 +126,14 @@ void controller(double kp, double ki, double kd, int dir) {
 	ctrl->SetOutputLimits(-3200.0,3200.0);
 	ctrl->SetSampleTime(15); // sample time in milliseconds
 	ctrl->SetMode(1); // Automatic
+	ctrl->setPriority(BlackLib::BlackThread::PriorityHIGHEST);
 
+	// Update display message
+	buzzer(3500, 15);
+	outLED->fx->setCursor(2,4);
+	outLED->fx->write("Controller Running ");
+	std::cout << "Controller Running ...." << std::endl;
+	buzzer(3500, 15);
 
 	// Reset pendulum position to make vertical zero
 	pendulumEQEP->setPosition(180-abs(pendulumEQEP->getAngleDeg()));
@@ -130,13 +141,8 @@ void controller(double kp, double ki, double kd, int dir) {
 
 	// start the controller thread
 	ctrl->run();
-	buzzer(3500, 15);
-	outLED->fx->setCursor(2,4);
-	outLED->fx->write("Controller Running ");
-	std::cout << "Controller Running ...." << std::endl;
-	buzzer(3500, 15);
-
 	start = lastTime = std::chrono::high_resolution_clock::now();
+
 	// Let the threads run for about 90 seconds
 	do {
 		now = std::chrono::high_resolution_clock::now();
