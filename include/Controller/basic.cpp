@@ -8,7 +8,7 @@
  * @date Copyright (C) 2015
  *
  * @license
- * \verbinclude "Troy Dack GPL-2.0.txt"
+ * \verbinclude "Troy Dack - GPL-2.0.txt"
  *
  **/
 

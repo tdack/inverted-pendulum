@@ -40,7 +40,7 @@ void buzzer(int f, int d) {
 
 /*!
  * @brief Main controller loop
- * @description Initialises display, eQEPs and controller.  Waits for user to raise pendulum
+ *  Initialises display, eQEPs and controller.  Waits for user to raise pendulum
  *  			then runs main control loop and sets motor speed based on controller output
  *
  * @param kp Proportional constant for PID controller

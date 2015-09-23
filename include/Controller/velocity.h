@@ -46,7 +46,7 @@ public:
 	/**
 	 * @brief Proportional-Integral-Derivative controller for inverted pendulum
 	 *
-	 *@description Uses pendulum angle and velocity to determine motor speed and direction
+	 * Uses pendulum angle and velocity to determine motor speed and direction
 	 *
 	 * @param[in] Angle	angle of the pendulum
 	 * @param[in] Velocity velocity of the pendulum
@@ -61,7 +61,7 @@ public:
 
 	/*!
 	 * @brief Set Controller operating mode
-	 * @description In auto mode the controller will alter the Output to drive towards
+	 *  In auto mode the controller will alter the Output to drive towards
 	 * 				the SetPoint.
 	 * 				In manual mode the controller is disabled and control of the Output
 	 * 				is handled external to the controller
@@ -72,7 +72,7 @@ public:
 
 	/*!
 	 * @brief Set output limits for controller
-	 * @description Clamps the output to a specific range. 0-255 by default, but
+	 *  Clamps the output to a specific range. 0-255 by default, but
 	 *				it's likely the user will want to change this depending on
 	 * 				the application
 	 *
@@ -83,7 +83,7 @@ public:
 
 	/*!
 	 * @brief Alter the PID parameters
-	 * @description While most users will set the tunings once in the
+	 *  While most users will set the tunings once in the
 	 *				constructor, this function gives the user the option
 	 *				of changing tunings during runtime for Adaptive control
 	 *
@@ -95,7 +95,7 @@ public:
 
 	/*!
 	 * @brief Set controller direction
-	 * @description Sets the Direction, or "Action" of the controller. DIRECT
+	 *  Sets the Direction, or "Action" of the controller. DIRECT
 	 *				means the output will increase when error is positive. REVERSE
 	 *				means the opposite.  it's very unlikely that this will be needed
 	 *				once it is set in the constructor.
@@ -106,7 +106,7 @@ public:
 
 	/*!
 	 * @brief Set sample time for PID calculations
-	 * @description Sets the frequency, in milliseconds, with which
+	 *  Sets the frequency, in milliseconds, with which
 	 *				the pid-new calculation is performed.  Default is 100
 	 *
 	 * @param[in] frequency in milliseconds
