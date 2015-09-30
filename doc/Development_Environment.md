@@ -2,10 +2,9 @@
 
 Development of this project was primarily undertaken in a Linux virtual machine running Debian 8 (Jessie) using the Eclipse (Mars) IDE and an ARM Hard Float cross compiler tool chain. Binaries were built on the development machine and transferred via ssh to the BeagleBone Black.  Remote debugging with Eclipse is also possible (though a little difficult for a multi-threaded application).
 
-Contents
---------
+##Contents
 * [Debian Jessie](#debian-jessie)
-* [Cross Compilation Tools](#cross-Compilation-Cools)
+* [Cross Compilation Tools](#cross-compilation-tools)
 * [SSH to/from your BeagleBone Black](#ssh-tofrom-your-beaglebone-black)
 * [Remote Debugging](#remote-debugging)
 * [ARM Emulation](#arm-emulation)
@@ -13,9 +12,28 @@ Contents
 * [References](#references)
 
 - - - -
+####Conventions
+Throughout this document commands will be given to be executed on either the development (host) machine, or on the BeagleBone Black.  To make it clear which system the command is to be executed on they will include the typical prompt that you would see in a terminal session.
 
+#####Development Machine
+
+	user@debian:~$ echo "This is a normal user on development machine"
+	root@debian:~# echo "This is the super user on the development machine"
+	
+#####BeagleBone Black
+
+	user@beaglebone:~$ echo "This is a normal user on the BeagleBone Black"
+	root@beaglebone:~# echo "This is the super user on the BeagleBone Black"
+
+- - - -
 ##Debian Jessie
 To install Debian Jessie follow the [Debian GNU/Linux Installation Guide](https://www.debian.org/releases/stable/amd64/).
+
+If installing into a virtual machine it is recommended that you have a multi-core processor and a reasonable amount of RAM in the host system.  The recommended resource allocation to the virtual machine is as follows:
+
+| Base Memory  | 2GB min |
+| Video Memory | 128MB   |
+| Hard Drive   | 20GB    |
 
 - - - -
 
@@ -49,6 +67,10 @@ Exit and save the file with `Ctrl-x`
 	root@debian:~# apt-get install build-essential \
 						   {libc6,libc6-dev,linux-libc-dev,libstdc++6}-armhf-cross \
 						   {binutils,gcc-4.7,g++-4.7}-arm-linux-gnueabihf
+
+> Note: These instructions were successful from a clean install of Debian Jessie 8.0.  One thing that needs to be the same between the host system and the BeagleBone Black is the version of **libc** that is installed on both systems.  In my case the BeagleBone Black came with libc-2.13 installed. When executing the above command ensure that the _libc6-armhf-cross_ being installed matches the version on your BeagleBone Black.  You can check the version installed on your BeagleBone Black by "running" the library from a terminal, eg:
+>
+> `root@beaglebone:~# /lib/arm-linux-gnueabihf/libc.so.6`
 	
 ####5. Create symlinks to installed compiler versions
 When using Eclipse it is easier to simply specify the compiler as `arm-linux-gnueabihf-gcc`, so we'll make a couple of symlinks to the versions of gcc and g++ that we just installed:
@@ -94,7 +116,7 @@ If compilation fails due to unfound headers or libraries go into the **Project P
 	- `/usr/arm-linux-gnueabuihf/lib`
 	
 ####8. Useful Eclipse Plugins
-Eclipse has a myriad of plugins that can be used to alter the functions of the IDE (even the look and feel of the user interface).  Here's a couple that are useful during development
+Eclipse has a myriad of plugins that can be used to alter the functions of the IDE (even the look and feel of the user interface).  Here's a couple that are useful during development.  They can be installed from within Eclipse by going to **Help > Install New Software**.
 * Eclipse GitHub integration with task focused interface
 * Eclox plugin for Eclipse (add `http://download.gna.org/eclox/update/` as a new site in **Help > Install New Software**)
 
@@ -133,13 +155,13 @@ Using Eclipse it is possible to execute your application on the BeagleBone Black
 
 ###BeagleBone Black
 
-	user@debian:~$ sudo apt-get install gdbserver
+	user@beaglebone:~$ sudo apt-get install gdbserver
 	
 ###Development Machine
 
 	user@debian:~$ sudo apt-get install gdb-multiarch
 	
-You will also need to create the following file in your Eclipse Project directory:
+You will also need to create the following file in the root of your Eclipse Project directory:
 
 	user@debian:~$ nano -w .gdbinit
 
@@ -209,7 +231,7 @@ From there you can execute your program and it will run as if it was on an ARM p
 ###Chrooting into an SD Card
 QEMU can also be used to chroot into an SD card image of your BeagleBone Black. There are a variety of handy scripts on your BeagleBone Black at `/opt/scripts/tools`. In the `eMMC` directory you will find a script that can copy the eMMC (flash) of your BeagleBone Black to a uSD card.  Simply insert an empty uSD card of at least 8GB and then run:
 
-	debian@beaglebone:/opt/scripts/tools/eMMC$ sudo beaglebone-black-make-microSD-flasher-from-eMMC.sh
+	user@beaglebone:/opt/scripts/tools/eMMC$ sudo beaglebone-black-make-microSD-flasher-from-eMMC.sh
 
 The LEDs on the BeagleBone Black should begin cycling back and forth, when this is done your SD card is ready.
 
