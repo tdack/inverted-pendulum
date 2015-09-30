@@ -31,9 +31,11 @@ To install Debian Jessie follow the [Debian GNU/Linux Installation Guide](https:
 
 If installing into a virtual machine it is recommended that you have a multi-core processor and a reasonable amount of RAM in the host system.  The recommended resource allocation to the virtual machine is as follows:
 
-| Base Memory  | 2GB min |
-| Video Memory | 128MB   |
-| Hard Drive   | 20GB    |
+Parameter   | Value
+---------------------
+Base Memory  | 2GB min
+Video Memory | 128MB
+Hard Drive   | 20GB
 
 - - - -
 
