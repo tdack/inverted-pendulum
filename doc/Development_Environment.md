@@ -13,6 +13,7 @@ Development of this project was primarily undertaken in a Linux virtual machine 
 * [References](#references)
 
 - - - -
+
 ####Conventions
 Throughout this document commands will be given to be executed on either the development (host) machine, or on the BeagleBone Black.  To make it clear which system the command is to be executed on they will include the typical prompt that you would see in a terminal session.
 
@@ -27,6 +28,7 @@ Throughout this document commands will be given to be executed on either the dev
 	root@beaglebone:~# echo "This is the super user on the BeagleBone Black"
 
 - - - -
+
 ##Debian Jessie
 To install Debian Jessie follow the [Debian GNU/Linux Installation Guide](https://www.debian.org/releases/stable/amd64/).
 
@@ -37,6 +39,7 @@ If installing into a virtual machine it is recommended that you have a multi-cor
     Hard Drive   : 20GB
 
 The full installation including cross compilation tools, Eclipse IDE and GUI will take approximately 8GB.
+
 - - - -
 
 ##Cross Compilation Tools
@@ -79,7 +82,7 @@ Install the required packages
 > Note: These instructions were successful from a clean install of Debian Jessie 8.0.  One thing that needs to be the same between the host system and the BeagleBone Black is the version of **libc** that is installed on both systems.  In my case the BeagleBone Black came with libc-2.13 installed. When executing the above command ensure that the _libc6-armhf-cross_ and _libc6-dev-armhf-cross_ being installed match the version on your BeagleBone Black.  You can check the version installed on your BeagleBone Black by "running" the library from a terminal, eg:
 >
 > ```
-root@beaglebone:~# /lib/arm-linux-gnueabihf/libc.so.6`
+root@beaglebone:~# /lib/arm-linux-gnueabihf/libc.so.6
 GNU C Library (Debian EGLIBC 2.13-38+deb7u8) stable release version 2.13, by Roland McGrath et al.
 ```
 	
@@ -90,7 +93,9 @@ When using Eclipse it is easier to simply specify the compiler as `arm-linux-gnu
 	root@debian:/usr/bin# ln -sf arm-linux-gnueabihf-gcc-4.7 arm-linux-gnueabihf-gcc
 	root@debian:/usr/bin# ln -sf arm-linux-gnueabihf-g++-4.7 arm-linux-gnueabihf-g++
 	root@debian:/usr/bin# exit
-	
+
+- - - -
+
 ##Integrated Development Environment
 Eclipse will be used as the Integrated Development Environment on the development system. It is a flexible IDE that has built in support for developing cross compiled applications and removes a lot of the difficulty in configuring your application for compilation using a cross compile tool chain.
 
@@ -186,7 +191,7 @@ Add the following content to it:
 ####Configure Eclipse for Remote Debugging
 To configure Eclipse for remote debugging make sure you are in the C/C++ Perspective View and go to **Run > Debug Configurations > C/C++ Remote Application** and add a new configuration. Most settings should be self evident, however there are a couple that will need customisation:
 * Remote Absolute File Path for C/C++ Application
-* Debugger > GDB debugger, set to: `/usr/bin/gdb-multiarch
+* Debugger > GDB debugger, set to: `/usr/bin/gdb-multiarch`
 * Debugger > GDB command file, set to: `.gdbinit`
 You might also need to configure a new connection to your BeagleBone Black, choose **SSH** as the connection type and follow the prompts.
 
@@ -264,5 +269,5 @@ Viola! You are now in a chroot environment that is identical to your BeagleBone 
 Most of the material here was gleaned from hours of time spent with the Google search engine.
 
 Two other invaluable references were:
-* [Exploring BeagleBone](http://exploringbeaglebone.com) - I highly recommend the book, it is worth the price.
+* [Exploring BeagleBone](http://exploringbeaglebone.com) - I highly recommend the book, it is well worth the price.
 * [Derek Molloy's BeagleBone Articles](http://derekmolloy.ie/beaglebone/)
