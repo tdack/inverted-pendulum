@@ -49,10 +49,10 @@ bool checkOverlays(){
 
 	// Iterate over devices we need
 	for (auto &dev : overlay_devices) {
-		rlutil::setColor(rlutil::YELLOW);
-		std::cout << dev.first << " ";
 		// Check if file exists
 		if (stat(dev.first.c_str(), &buffer) != 0) {
+			rlutil::setColor(rlutil::YELLOW);
+			std::cout << dev.first << " ";
 			rlutil::setColor(rlutil::YELLOW);
 			std::cout << dev.first << " ";
 			rlutil::setColor(rlutil::RED);
@@ -63,11 +63,9 @@ bool checkOverlays(){
 			}
 			rlutil::setColor(rlutil::GREEN);
 			std::cout << "loaded!" << std::endl;
-		} else {
-			std::cout << std::endl;
+			rlutil::setColor(rlutil::WHITE);
 		}
 	}
-	rlutil::setColor(rlutil::WHITE);
 	fSlots.close();
 
 	return overlays_loaded;

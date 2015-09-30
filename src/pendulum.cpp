@@ -20,7 +20,7 @@
 #include <Controller/velocity.h>
 #include <Controller/lqr.h>
 
-using namespace std;
+//using namespace std;
 
 /*! @brief Set frequency and output duration for PWM
 *
@@ -88,8 +88,8 @@ void controller(double kp, double ki, double kd, int dir) {
 	threadedEQEP *pendulumEQEP = new threadedEQEP(PENDULUM_EQEP, ENCODER_PPR);
 	threadedEQEP *motorEQEP = new threadedEQEP(MOTOR_EQEP, MOTOR_PPR);
 
-	pendulumEQEP->setPriority(BlackLib::BlackThread::PriorityHIGH);
-	motorEQEP->setPriority(BlackLib::BlackThread::PriorityHIGH);
+	pendulumEQEP->setPriority(BlackLib::BlackThread::PriorityNORMAL);
+	motorEQEP->setPriority(BlackLib::BlackThread::PriorityNORMAL);
 
 	// Create a new controller
 	Controller::basic *ctrl = new Controller::basic(&pendulumAngle, &motorSpeed, &setAngle, kp, ki, kd, dir);
@@ -106,8 +106,9 @@ void controller(double kp, double ki, double kd, int dir) {
 	Pololu::SMC *SMC = new Pololu::SMC(POLOLU_TTY);
 	// Stop the motor
 	SMC->SetTargetSpeed(0);
+	std::cout << "Exit Safe Start: " << SMC->ExitSafeStart() << std::endl;
+	sleep(1);
 	std::cout << "Battery Voltage: " << SMC->GetVariable(23)/1000.0 << "V" << std::endl;
-	cout << "Done!" << endl;
 
 	// Start the EQEP threads running
 	pendulumEQEP->run();
@@ -118,7 +119,7 @@ void controller(double kp, double ki, double kd, int dir) {
 	// Assumes pendulum starts hanging vertically down
 	while (abs(pendulumEQEP->getAngleDeg()) < 179 || abs(pendulumEQEP->getAngleDeg() > 181))  {
 		outLED->fx->setCursor(18, 24);
-		outLED->fx->write(to_string(pendulumEQEP->getAngleDeg()).c_str());
+		outLED->fx->write(std::to_string(pendulumEQEP->getAngleDeg()).c_str());
 		outLED->fx->refreshScreen();
 	}
 
@@ -126,7 +127,7 @@ void controller(double kp, double ki, double kd, int dir) {
 	ctrl->SetOutputLimits(-3200.0,3200.0);
 	ctrl->SetSampleTime(15); // sample time in milliseconds
 	ctrl->SetMode(1); // Automatic
-	ctrl->setPriority(BlackLib::BlackThread::PriorityHIGHEST);
+//	ctrl->setPriority(BlackLib::BlackThread::PriorityHIGH);
 
 	// Update display message
 	buzzer(3500, 15);
@@ -162,9 +163,9 @@ void controller(double kp, double ki, double kd, int dir) {
 		SMC->SetTargetSpeed( ((abs(pendulumAngleDeg) > 30) ? 0 : setSpeed) );
 
 		// Use threaded SSD1306 so that screen updates don't slow down control loop
-		outLED->write(18,24, to_string(pendulumAngleDeg).c_str());
-		outLED->write(18,32, to_string(motorAngle).c_str());
-		outLED->write(18,40, to_string(setSpeed).c_str());
+		outLED->write(18,24, std::to_string(pendulumAngleDeg).c_str());
+		outLED->write(18,32, std::to_string(motorAngle).c_str());
+		outLED->write(18,40, std::to_string(setSpeed).c_str());
 		outLED->write(-1,-1, "   ");
 		outLED->run();
 		lastTime = now;
@@ -189,8 +190,9 @@ void controller(double kp, double ki, double kd, int dir) {
 	delete motorEQEP;
 
 	SMC->SetTargetSpeed(0);
+	sleep(1);
 	std::cout << "Battery Voltage: " << SMC->GetVariable(23)/1000.0 << "V" << std::endl;
-	cout << "Done!" << endl;
+	std::cout << "Done!" << std::endl;
 	return;
 }
 
@@ -200,7 +202,7 @@ int main(int argc, char const *argv[]) {
 	std::cout << "Checking overlays are loaded... \n" << std::flush;
 
 	if (checkOverlays()) {
-		cout << "OK" << std::endl;
+		std::cout << "OK" << std::endl;
 	} else {
 		return 0;
 	}
