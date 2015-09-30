@@ -5,6 +5,7 @@ Development of this project was primarily undertaken in a Linux virtual machine 
 ##Contents
 * [Debian Jessie](#debian-jessie)
 * [Cross Compilation Tools](#cross-compilation-tools)
+* [Integrated Development Environment](#integrated-development-environment)
 * [SSH to/from your BeagleBone Black](#ssh-tofrom-your-beaglebone-black)
 * [Remote Debugging](#remote-debugging)
 * [ARM Emulation](#arm-emulation)
@@ -31,18 +32,17 @@ To install Debian Jessie follow the [Debian GNU/Linux Installation Guide](https:
 
 If installing into a virtual machine it is recommended that you have a multi-core processor and a reasonable amount of RAM in the host system.  The recommended resource allocation to the virtual machine is as follows:
 
-Parameter   | Value
----------------------
-Base Memory  | 2GB min
-Video Memory | 128MB
-Hard Drive   | 20GB
+    Base Memory  : 2GB minimum
+    Video Memory : 128MB
+    Hard Drive   : 20GB
 
+The full installation including cross compilation tools, Eclipse IDE and GUI will take approximately 8GB.
 - - - -
 
 ##Cross Compilation Tools
-A cross compilation toolchain is required to build binary executable files for the ARM based BeagleBone Black using a more powerful desktop computer.  Typically the desktop computer has an Intel x86 processor.  The default C/C++ compiler and toolchain installed with Debian amd64 will only build executables to run on an Intel x86 processor.  To work around this a cross-compiler is required, one that runs on x86 but builds binaries for ARM.
+A cross compilation toolchain is required to build binary executable files for the ARM based BeagleBone Black using a more powerful desktop computer.  Typically the desktop computer has an Intel x86 processor.  The default C/C++ compiler and toolchain installed with Debian will only build executables to run on an Intel x86 processor.  To work around this a cross-compiler is required, one that runs on x86 but builds binaries for ARM (the processor in the BeagleBone Black).
 
-Linux, particularly Debian, is used to achieve this as it has a realtively simple method of installing a cross compilation toolchain.
+Linux, particularly Debian, is used to achieve this as it has a realtively simple method of installing a cross compilation toolchain. Since the BeagleBone Black's default operating system is Linux it makes sense to use the same on your devlopment system.
 
 ####1. Change to a root shell in your Debian machine:
 
@@ -66,13 +66,21 @@ Exit and save the file with `Ctrl-x`
 
 ####4. Install the cross compiler toolchain:
 
+Update the package caches
+
+    root@debian:~# apt-get update
+
+Install the required packages
+
 	root@debian:~# apt-get install build-essential \
 						   {libc6,libc6-dev,linux-libc-dev,libstdc++6}-armhf-cross \
-						   {binutils,gcc-4.7,g++-4.7}-arm-linux-gnueabihf
+						   {binutils,gcc-4.7,g++-4.7}-arm-linux-gnueabihf git
 
-> Note: These instructions were successful from a clean install of Debian Jessie 8.0.  One thing that needs to be the same between the host system and the BeagleBone Black is the version of **libc** that is installed on both systems.  In my case the BeagleBone Black came with libc-2.13 installed. When executing the above command ensure that the _libc6-armhf-cross_ being installed matches the version on your BeagleBone Black.  You can check the version installed on your BeagleBone Black by "running" the library from a terminal, eg:
+> Note: These instructions were successful from a clean install of Debian Jessie 8.0.  One thing that needs to be the same between the host system and the BeagleBone Black is the version of **libc** that is installed on both systems.  In my case the BeagleBone Black came with libc-2.13 installed. When executing the above command ensure that the _libc6-armhf-cross_ and _libc6-dev-armhf-cross_ being installed match the version on your BeagleBone Black.  You can check the version installed on your BeagleBone Black by "running" the library from a terminal, eg:
 >
 > `root@beaglebone:~# /lib/arm-linux-gnueabihf/libc.so.6`
+> 
+> `GNU C Library (Debian EGLIBC 2.13-38+deb7u8) stable release version 2.13, by Roland McGrath et al.`
 	
 ####5. Create symlinks to installed compiler versions
 When using Eclipse it is easier to simply specify the compiler as `arm-linux-gnueabihf-gcc`, so we'll make a couple of symlinks to the versions of gcc and g++ that we just installed:
@@ -82,7 +90,10 @@ When using Eclipse it is easier to simply specify the compiler as `arm-linux-gnu
 	root@debian:/usr/bin# ln -sf arm-linux-gnueabihf-g++-4.7 arm-linux-gnueabihf-g++
 	root@debian:/usr/bin# exit
 	
-####6. Install a Java Runtime Environment (JRE) for Eclipse
+##Integrated Development Environment
+Eclipse will be used as the Integrated Development Environment on the development system. It is a flexible IDE that has built in support for developing cross compiled applications and removes a lot of the difficulty in configuring your application for compilation using a cross compile tool chain.
+
+####1. Install a Java Runtime Environment (JRE) for Eclipse
 Eclipse is written in Java and requires a suitable Java Runtime Environment (JRE).  The one that may be installed by default in Debian probably won't play nicely with Eclipse.  The easiest thing to do is install the latest JRE direct from Oracle (formerly Sun).
 
 Head over to [www.java.com](http://www.java.com) and find the latest installer for Linux
@@ -95,7 +106,7 @@ Head over to [www.java.com](http://www.java.com) and find the latest installer f
 	user@debian:~$ sudo update-alternatives --install "/usr/bin/java" "java" "/usr/java/jre1.8.0_60/bin/java" 1
 	user@debian:~$ sudo update-alternatives --set java /usr/bin/java/jre1.8.0_60/bin/java
 	
-####7. Installing & Configuring Eclipse
+####2. Installing & Configuring Eclipse
 Download the latest version of the Eclipse CDT (C/C++ Development Tooling) from [www.eclipse.org](http://www.eclipse.org).  The latest version is currently **Mars**.
 Once the file has downloaded move it to the home directory and unpack it.  Eclipse will be installed in the user account only (ie: not system wide)
 
@@ -117,7 +128,7 @@ If compilation fails due to unfound headers or libraries go into the **Project P
 * Library Paths (*not* Libraries)
 	- `/usr/arm-linux-gnueabuihf/lib`
 	
-####8. Useful Eclipse Plugins
+####3. Useful Eclipse Plugins
 Eclipse has a myriad of plugins that can be used to alter the functions of the IDE (even the look and feel of the user interface).  Here's a couple that are useful during development.  They can be installed from within Eclipse by going to **Help > Install New Software**.
 * Eclipse GitHub integration with task focused interface
 * Eclox plugin for Eclipse (add `http://download.gna.org/eclox/update/` as a new site in **Help > Install New Software**)
