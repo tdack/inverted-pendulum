@@ -18,12 +18,14 @@ case $1 in
 	else
 		echo "namserver 8.8.8.8" >> /etc/resolv.conf
 	fi
+	ip route show
 	;;
   vm)
-	sudo ip addr add 192.168.7.1 dev $2
-	sudo ip route add 192.168.7.0/24 dev $2
+	sudo dhclient $2
 	sudo iptables -A POSTROUTING -t nat -j MASQUERADE
 	echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward > /dev/null
+	ip addr show dev $2
+	ip route show
 	;;
   *)
 	usage;
