@@ -17,6 +17,9 @@ for j=1:6
     figure(1)
         hold on;
             plot(data(1:555,1), data(1:555,2), 'DisplayName', [filename]);
+            title('Motor Step Response');
+            xlabel('Time (s)');
+            ylabel('Velocity (degree/s)');
     figure(2)
         hold on;
             plot(data(40:555,1), data(40:555,2), 'DisplayName', [filename]);
