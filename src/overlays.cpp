@@ -24,6 +24,10 @@
 #include <overlays.h>
 #include <pendulum.h>
 
+/**
+ * Checks device overlays are loaded
+ * If not, loads overlays as required.
+ **/
 bool checkOverlays(){
 	std::map<std::string, std::vector<std::string> > overlay_devices {
 		{POLOLU_TTY, { "ADAFRUIT-UART2" } },		// /dev/ttyXX
@@ -51,8 +55,6 @@ bool checkOverlays(){
 	for (auto &dev : overlay_devices) {
 		// Check if file exists
 		if (stat(dev.first.c_str(), &buffer) != 0) {
-			rlutil::setColor(rlutil::YELLOW);
-			std::cout << dev.first << " ";
 			rlutil::setColor(rlutil::YELLOW);
 			std::cout << dev.first << " ";
 			rlutil::setColor(rlutil::RED);
