@@ -20,23 +20,6 @@
 #include <Controller/velocity.h>
 #include <Controller/lqr.h>
 
-//using namespace std;
-
-/*! @brief Set frequency and output duration for PWM
-*
-* @param f Frequency in Hz
-* @param d Duration in milliseconds
-*/
-void buzzer(int f, int d) {
-	BlackLib::BlackPWM buzzerPWM(BlackLib::P8_19);
-
-	buzzerPWM.setDutyPercent(50.0);
-	buzzerPWM.setPeriodTime(1/f, BlackLib::second);
-	buzzerPWM.setRunState(BlackLib::run);
-	std::this_thread::sleep_for(std::chrono::milliseconds(d));
-	buzzerPWM.setRunState(BlackLib::stop);
-	return;
-}
 
 /*!
  * @brief Main controller loop
@@ -113,7 +96,6 @@ void controller(double kp, double ki, double kd, int dir) {
 	// Start the EQEP threads running
 	pendulumEQEP->run();
 	motorEQEP->run();
-	buzzer(3500, 25);
 
 	// Wait until the pendulum is @ 180 +-1 deg
 	// Assumes pendulum starts hanging vertically down
@@ -127,14 +109,12 @@ void controller(double kp, double ki, double kd, int dir) {
 	ctrl->SetOutputLimits(-3200.0,3200.0);
 	ctrl->SetSampleTime(15); // sample time in milliseconds
 	ctrl->SetMode(1); // Automatic
-//	ctrl->setPriority(BlackLib::BlackThread::PriorityHIGH);
 
 	// Update display message
 	buzzer(3500, 15);
 	outLED->fx->setCursor(2,4);
 	outLED->fx->write("Controller Running ");
 	std::cout << "Controller Running ...." << std::endl;
-	buzzer(3500, 15);
 
 	// Reset pendulum position to make vertical zero
 	pendulumEQEP->setPosition(180-abs(pendulumEQEP->getAngleDeg()));
@@ -171,7 +151,6 @@ void controller(double kp, double ki, double kd, int dir) {
 		lastTime = now;
 		runTime = (now - start);
 	} while (runTime.count() < 90);
-	buzzer(5000, 25);
 
 	SMC->SetTargetSpeed(0);
 	outLED->stop();
