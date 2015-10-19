@@ -59,6 +59,7 @@ void controller(double kp, double ki, double kd, int dir) {
 	double pendulumAngleDeg = 0;
 	double pendulumVelocity =0;
 	double motorAngle = 0;
+	double motorAngleDeg = 0;
 	double motorVelocity =0;
 	double motorSpeed = 0;
 	double setAngle = 0;
@@ -117,7 +118,7 @@ void controller(double kp, double ki, double kd, int dir) {
 
 	// Set controller parameters
 	ctrl->SetOutputLimits(-3200.0,3200.0);
-	ctrl->SetSampleTime(15); // sample time in milliseconds
+	ctrl->SetSampleTime(20); // sample time in milliseconds
 	ctrl->SetMode(1); // Automatic
 
 	// Update display message
@@ -142,11 +143,18 @@ void controller(double kp, double ki, double kd, int dir) {
 		pendulumAngleDeg = pendulumAngle * 180 / M_PI; // convert radian to degrees
 		pendulumVelocity = pendulumEQEP->getVelocity();
 		// Get motor angle and velocity
-		motorAngle = motorEQEP->getAngleDeg();
-		motorVelocity = motorEQEP->getVelocityDeg();
+		motorAngle = motorEQEP->getAngle();
+		motorAngleDeg = motorAngle * 180 / M_PI; // convert radian to degrees
+		motorVelocity = motorEQEP->getVelocity();
 
 		// Motor doesn't move unless speed > 350
 		setSpeed = ( motorSpeed > 0 ? 1 : -1) * 350 + (int)motorSpeed;
+		if (setSpeed > 3200) {
+			setSpeed = 3200;
+		} else if (setSpeed < -3200) {
+			setSpeed = -3200;
+		}
+		std::cout << "setSpeed: " << setSpeed << std::endl;
 
 		// stop the motor if we deviate too far from vertical
 		SMC->SetTargetSpeed( ((abs(pendulumAngleDeg) > 30) ? 0 : setSpeed) );
