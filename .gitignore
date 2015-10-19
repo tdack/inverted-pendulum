@@ -28,12 +28,14 @@
 *.out
 *.app
 
+# OS X filesystem junk
+.DS_*
+
 # Eclipse settings
 .settings/
 /.pydevproject
 
 # Compiled documentation
-Doc/
 doc/html/
 doc/doxygen_sqlite3.db
 src/doxygen_sqlite3.db
