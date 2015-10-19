@@ -74,6 +74,10 @@ void basic::onStartHandler() {
 	}
 }
 
+std::string basic::name() {
+	return std::string("Basic");
+}
+
 void basic::stop() {
 	bExit.store(true);
 }

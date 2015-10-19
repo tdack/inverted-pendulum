@@ -75,6 +75,10 @@ void lqr::onStartHandler() {
 	}
 }
 
+std::string lqr::name() {
+	return std::string("LQR");
+}
+
 void lqr::stop() {
 	bExit.store(true);
 }

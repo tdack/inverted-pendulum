@@ -36,6 +36,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdbool>
+#include <string>
 
 namespace Controller {
 class basic: public BlackLib::BlackThread {
@@ -90,6 +91,8 @@ public:
 
 	void onStartHandler();  // called by run() to do the work in the thread
 
+	std::string name();
+
 	void stop();			// stops the thread running.
 
 private:
@@ -97,6 +100,7 @@ private:
 	void Compute(); // does the actual PID calculations
 
 	std::atomic<bool> bExit; 	// flag to tell thread to quit
+	std::string _name = "Basic";
 
 	double dispKp;				// * we'll hold on to the tuning parameters in user-entered
 	double dispKi;				//   format for display purposes

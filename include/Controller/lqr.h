@@ -36,6 +36,7 @@
 #include <atomic>
 #include <cstdbool>
 #include <chrono>
+#include <string>
 
 namespace Controller {
 
@@ -93,6 +94,8 @@ public:
 
 	void onStartHandler();  // called by run() to do the work in the thread
 
+	std::string name();
+
 	void stop();			// stops the thread running.
 
 private:
@@ -100,6 +103,8 @@ private:
 	void Compute(); // does the actual PID calculations
 
 	std::atomic<bool> bExit; 	// flag to tell thread to quit
+
+	std::string _name = "LQR";
 
 	double dispK1;				// * we'll hold on to the tuning parameters in user-entered
 	double dispK2;				//   format for display purposes

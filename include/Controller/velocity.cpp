@@ -70,6 +70,10 @@ void velocity::onStartHandler() {
 	}
 }
 
+std::string velocity::name() {
+	return std::string("Velocity");
+}
+
 void velocity::stop() {
 	bExit.store(true);
 }

@@ -37,6 +37,7 @@
 #include <atomic>
 #include <cstdbool>
 #include <chrono>
+#include <string>
 
 namespace Controller {
 class velocity : public BlackLib::BlackThread {
@@ -158,6 +159,8 @@ public:
 	 */
 	void onStartHandler();
 
+	std::string name();
+
 	/*!
 	 * @brief Stops the thread running
 	 */
@@ -176,6 +179,7 @@ private:
 
 	std::atomic<bool> bExit; 	/*!< flag to tell thread to quit */
 
+	std::string _name = "Velocity";
 	double dispKp;
 	double dispKi;
 	double dispKd;
