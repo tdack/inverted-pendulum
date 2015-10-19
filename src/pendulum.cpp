@@ -16,10 +16,16 @@
 #include <overlays.h>
 #include <thread>
 
-#include <Controller/basic.h>
-#include <Controller/velocity.h>
+#ifdef PENDULUM_CTRL_LQR
 #include <Controller/lqr.h>
 
+#elif PENDULUM_CTRL_VELOCITY
+#include <Controller/velocity.h>
+
+#else //Use basic controller by default
+#define PENDULUM_CTRL_BASIC
+#include <Controller/basic.h>
+#endif
 
 /*!
  * @brief Main controller loop
@@ -75,15 +81,19 @@ void controller(double kp, double ki, double kd, int dir) {
 	motorEQEP->setPriority(BlackLib::BlackThread::PriorityNORMAL);
 
 	// Create a new controller
+#ifdef PENDULUM_CTRL_LQR
+	Controller::lqr *ctrl = new Controller::lqr(&pendulumAngle, &pendulumVelocity,
+										&motorAngle, &motorVelocity,
+										&motorSpeed, &setAngle,
+										-23.1455, 126.3112, -5.7435, 7.5213, // LQR constants
+										dir);
+#elif PENDULUM_CTRL_VELOCITY
+	Controller::velocity *ctrl = new Controller::velocity(&pendulumAngle,&pendulumVelocity, &motorSpeed, &setAngle, kp, ki, kd, dir);
+#else
 	Controller::basic *ctrl = new Controller::basic(&pendulumAngle, &motorSpeed, &setAngle, kp, ki, kd, dir);
-//	Controller::velocity *ctrl = new Controller::velocity(&pendulumAngle,&pendulumVelocity, &motorSpeed, &setAngle, kp, ki, kd, dir);
-//	Controller::lqr *ctrl = new Controller::lqr(&pendulumAngle, &pendulumVelocity,
-//										&motorAngle, &motorVelocity,
-//										&motorSpeed, &setAngle,
-//										-23.1455, 126.3112, -5.7435, 7.5213, // LQR constants
-//										dir);
+#endif
 
-	std::cout << "Using " << "Basic" << " controller" << std::endl;
+	std::cout << "Using " << ctrl->name() << " controller" << std::endl;
 
 	// Create a Simple Motor Controller object
 	Pololu::SMC *SMC = new Pololu::SMC(POLOLU_TTY);
@@ -111,7 +121,6 @@ void controller(double kp, double ki, double kd, int dir) {
 	ctrl->SetMode(1); // Automatic
 
 	// Update display message
-	buzzer(3500, 15);
 	outLED->fx->setCursor(2,4);
 	outLED->fx->write("Controller Running ");
 	std::cout << "Controller Running ...." << std::endl;
