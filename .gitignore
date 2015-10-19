@@ -33,7 +33,6 @@
 /.pydevproject
 
 # Compiled documentation
-Doc/
 doc/html/
 doc/doxygen_sqlite3.db
 src/doxygen_sqlite3.db
