@@ -28,6 +28,9 @@
 *.out
 *.app
 
+# OS X filesystem junk
+.DS_*
+
 # Eclipse settings
 .settings/
 /.pydevproject
