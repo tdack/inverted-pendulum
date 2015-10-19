@@ -48,3 +48,5 @@ src/doxygen_sqlite3.db
 
 # Project binary
 pendulum
+/LQR/
+/Velocity/
