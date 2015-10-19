@@ -24,7 +24,7 @@
 #ifndef INCLUDE_CONTROLLER_LQR_H_
 #define INCLUDE_CONTROLLER_LQR_H_
 
-//#define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #define D(x) x

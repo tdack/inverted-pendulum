@@ -24,7 +24,7 @@ lqr::lqr(double* _pAngle, double* _pVelocity, double* _mAngle, double* _mVelocit
 		pAngle(_pAngle), pVelocity(_pVelocity),
 		mAngle(_mAngle), mVelocity(_mVelocity),
 		myOutput(Output), mySetPoint(SetPoint),
-		inAuto(false), SampleTime(100)
+		inAuto(false), SampleTime(10)
 {
 	bExit.store(false);
 	SetOutputLimits(0, 100);
@@ -62,13 +62,14 @@ void lqr::Compute() {
 		D(std::cout << pV  << ",";)
 		D(std::cout << mA << ",";)
 		D(std::cout << mV << ",";)
-		D(std::cout << u << std::endl;)
+		D(std::cout << u << ",";)
+		D(std::cout << output << std::endl;)
 	}
 }
 
 void lqr::onStartHandler() {
 	Initialize();
-	std::cout << "pA,pV,mA,mV,u,dt"<< std::endl;
+	D(std::cout << "pA,pV,mA,mV,u,dt"<< std::endl;)
 	while (!bExit.load()) {
 		this->Compute();
 		yield();
