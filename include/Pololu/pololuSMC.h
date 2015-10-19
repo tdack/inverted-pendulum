@@ -25,6 +25,7 @@
 #define INCLUDE_POLOLU_POLOLUSMC_H_
 
 #include <atomic>
+#include <mutex>
 
 namespace Pololu {
 
@@ -71,6 +72,7 @@ private:
 	int serial_write(const unsigned char *buffer, int len);
 	int serial_read();
 	std::atomic<bool> ttyActive;
+	std::mutex mtx;
 
 public:
 	/**

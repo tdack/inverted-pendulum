@@ -59,16 +59,18 @@ namespace Pololu {
 	}
 
 	int SMC::serial_write(const unsigned char *buffer, int len) {
-		if (ttyActive.load()) {
-			std::cout << "tty busy" << std::endl;
-			return -1;
-		}
+		mtx.lock();
+//		if (ttyActive.load()) {
+//			std::cout << "tty busy" << std::endl;
+//			return -1;
+//		}
 		int bytes_written = 0;
 		bytes_written = write(SMCfd, buffer, len);
 		if (bytes_written == -1) {
 			perror("Couldn't write data");
 		}
-		ttyActive.store(false);
+//		ttyActive.store(false);
+		mtx.unlock();
 		return bytes_written;
 	}
 
