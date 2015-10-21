@@ -42,13 +42,14 @@ src/doxygen_sqlite3.db
 
 
 # Build directories
-/Debug/
 /Debug (Local)/
-/Pendulum/
 /Release/
 /Websocket/
-
-# Project binary
-pendulum
 /LQR/
 /Velocity/
+/Debug - Basic/
+/Debug - LQR/
+/Debug - Velocity/
+
+# Project binary
+pendulum*

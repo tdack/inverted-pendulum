@@ -38,9 +38,6 @@
 // Pololu Serial Motor Controller class
 #include <Pololu/pololuSMC.h>
 
-// SSD1306 OLED
-#include <SSD1306/OLED.h>
-
 #include <rlutil.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -70,8 +67,8 @@
 
 const double MOTOR_TEETH = 40.0;	/*!< @brief Number of teeth on motor pulley */
 const double ENCODER_TEETH = 12.0;	/*!< @brief Number of teeth on encoder pulley */
-const double ENCODER_PPR = 1600.0;	/*!< @brief Encoder pulses per revolution (x4 mode) */
-const double MOTOR_PPR = 1600.0 * MOTOR_TEETH / ENCODER_TEETH; /*!< @brief Motor pulses per revolution (scaled */
+const double ENCODER_PPR = 4 * 400.0;	/*!< @brief Encoder pulses per revolution (x4 mode) */
+const double MOTOR_PPR = 4 * 400.0 * MOTOR_TEETH / ENCODER_TEETH; /*!< @brief Motor pulses per revolution (scaled */
 /**
  * /dev/ttyO2 - serial comms to SMC
  *
