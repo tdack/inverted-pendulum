@@ -19,6 +19,7 @@ case $1 in
 		echo "namserver 8.8.8.8" >> /etc/resolv.conf
 	fi
 	ip route show
+	ntpdate ntp.internode.on.net
 	;;
   vm)
 	sudo dhclient $2
