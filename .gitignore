@@ -4,6 +4,7 @@
 *.o
 *.obj
 *.dtbo
+*.d
 
 # Precompiled Headers
 *.gch
@@ -47,7 +48,6 @@ src/doxygen_sqlite3.db
 /Websocket/
 /LQR/
 /Velocity/
-/Debug - Basic/
 /Debug - LQR/
 /Debug - Velocity/
 
