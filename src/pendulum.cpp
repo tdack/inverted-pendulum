@@ -16,6 +16,7 @@
 #include <overlays.h>
 #include <thread>
 
+// Conditional defines determine which controller will be used
 #ifdef PENDULUM_CTRL_LQR
 #include <Controller/lqr.h>
 
@@ -25,6 +26,7 @@
 #else //Use basic controller by default
 #define PENDULUM_CTRL_BASIC
 #include <Controller/basic.h>
+
 #endif
 
 /*!
@@ -39,19 +41,6 @@
  */
 void controller(double kp, double ki, double kd, int dir) {
 
-	// Initialise display
-	SSD1306::OLED *outLED = new SSD1306::OLED();
-	outLED->setPriority(BlackLib::BlackThread::PriorityLOWEST);
-
-	// Display initial message
-	outLED->fx->clearScreen();
-	outLED->fx->setTextColor(SSD1306::RGB::black, SSD1306::RGB::white);
-	outLED->fx->setTextSize(1);
-	outLED->fx->setCursor(2,4);
-	outLED->fx->write(" Raise the pendulum");
-	outLED->fx->setCursor(0, 24);
-	outLED->fx->write(" P:\n M:\n S:");
-	outLED->fx->drawRoundRect(0,0,outLED->fx->getWidth(), 16, 4, SSD1306::RGB::black);
 	std::cout << "Raise the pendulum" << std::endl;
 
 	// Variables that will be used to pass data to/from controller
@@ -94,15 +83,10 @@ void controller(double kp, double ki, double kd, int dir) {
 	Controller::basic *ctrl = new Controller::basic(&pendulumAngle, &motorSpeed, &setAngle, kp, ki, kd, dir);
 #endif
 
-	std::cout << "Using " << ctrl->name() << " controller" << std::endl;
-
 	// Create a Simple Motor Controller object
 	Pololu::SMC *SMC = new Pololu::SMC(POLOLU_TTY);
 	// Stop the motor
 	SMC->SetTargetSpeed(0);
-	std::cout << "Exit Safe Start: " << SMC->ExitSafeStart() << std::endl;
-	sleep(1);
-	std::cout << "Battery Voltage: " << SMC->GetVariable(23)/1000.0 << "V" << std::endl;
 
 	// Start the EQEP threads running
 	pendulumEQEP->run();
@@ -111,9 +95,7 @@ void controller(double kp, double ki, double kd, int dir) {
 	// Wait until the pendulum is @ 180 +-1 deg
 	// Assumes pendulum starts hanging vertically down
 	while (abs(pendulumEQEP->getAngleDeg()) < 179 || abs(pendulumEQEP->getAngleDeg() > 181))  {
-		outLED->fx->setCursor(18, 24);
-		outLED->fx->write(std::to_string(pendulumEQEP->getAngleDeg()).c_str());
-		outLED->fx->refreshScreen();
+		std::cout << pendulumEQEP->getAngleDeg() << "\r" << std::flush;
 	}
 
 	// Set controller parameters
@@ -121,10 +103,7 @@ void controller(double kp, double ki, double kd, int dir) {
 	ctrl->SetSampleTime(20); // sample time in milliseconds
 	ctrl->SetMode(1); // Automatic
 
-	// Update display message
-	outLED->fx->setCursor(2,4);
-	outLED->fx->write("Controller Running ");
-	std::cout << "Controller Running ...." << std::endl;
+	std::cout << ctrl->name() << " controller running ...." << std::endl;
 
 	// Reset pendulum position to make vertical zero
 	pendulumEQEP->setPosition(180-abs(pendulumEQEP->getAngleDeg()));
@@ -154,29 +133,22 @@ void controller(double kp, double ki, double kd, int dir) {
 		} else if (setSpeed < -3200) {
 			setSpeed = -3200;
 		}
-		std::cout << "setSpeed: " << setSpeed << std::endl;
+
+		std::cout << "setSpeed: " << setSpeed << "\r" << std::flush;
 
 		// stop the motor if we deviate too far from vertical
 		SMC->SetTargetSpeed( ((abs(pendulumAngleDeg) > 30) ? 0 : setSpeed) );
 
-		// Use threaded SSD1306 so that screen updates don't slow down control loop
-		outLED->write(18,24, std::to_string(pendulumAngleDeg).c_str());
-		outLED->write(18,32, std::to_string(motorAngle).c_str());
-		outLED->write(18,40, std::to_string(setSpeed).c_str());
-		outLED->write(-1,-1, "   ");
-		outLED->run();
 		lastTime = now;
 		runTime = (now - start);
 	} while (runTime.count() < 90);
 
 	SMC->SetTargetSpeed(0);
-	outLED->stop();
 	ctrl->stop();
 	pendulumEQEP->stop();
 	motorEQEP->stop();
 
 	// Don't quit until all threads are finished
-	WAIT_THREAD_FINISH(outLED);
 	WAIT_THREAD_FINISH(ctrl);
 	WAIT_THREAD_FINISH(pendulumEQEP);
 	WAIT_THREAD_FINISH(motorEQEP);
@@ -186,8 +158,6 @@ void controller(double kp, double ki, double kd, int dir) {
 	delete motorEQEP;
 
 	SMC->SetTargetSpeed(0);
-	sleep(1);
-	std::cout << "Battery Voltage: " << SMC->GetVariable(23)/1000.0 << "V" << std::endl;
 	std::cout << "Done!" << std::endl;
 	return;
 }
