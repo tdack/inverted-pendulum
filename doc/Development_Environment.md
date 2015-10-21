@@ -6,6 +6,7 @@ Development of this project was primarily undertaken in a Linux virtual machine 
 * [Debian Jessie](#debian-jessie)
 * [Cross Compilation Tools](#cross-compilation-tools)
 * [Integrated Development Environment](#integrated-development-environment)
+* [Flashing the BeagleBone Black](#flashing-the-beaglebone-black)
 * [SSH to/from your BeagleBone Black](#ssh-tofrom-your-beaglebone-black)
 * [Remote Debugging](#remote-debugging)
 * [ARM Emulation](#arm-emulation)
@@ -144,6 +145,23 @@ To fully utilise the Doxygen plugin make sure Doxygen itself is installed on you
 	user@debian:~$ sudo apt-get install doxygen
 
 - - - -
+
+## Flashing the BeagleBone Black
+Flashing the BeagleBone Black is a fairly easy process.
+
+You can follow the steps at http://beagleboard.org/getting-started
+
+Another option is to make an image using what is already on the eMMC.
+
+To do this use the scripts in `/opt/scripts/tools/eMMC`, you'll need a uSD card of at least 4GB and then run:
+
+    root@beaglebone:eMMC$ beaglebone-black-make-microSD-flasher-from-eMMC.sh
+
+This will create a bootable uSD card that will flash the BeagleBone Black with what is installed, think of it as a self restoring backup.
+
+The uSD card can be altered to be a normal bootable image, simply edit the `uEnv.txt` file on the uSD card and comment out the *eMMC-flasher* `cmdline` directive.
+ 
+- - - - 
 
 ## SSH to/from your BeagleBone Black
 SSH is the easiest and most common method for accessing your BeagleBone Black, either to get shell access (a command line prompt) or to copy files easily.  To make the process easier you can configure ssh keys for authentication on both your BeagleBone Black and your development machine.

@@ -8,7 +8,7 @@ The BeagleBone Black is interfaced to the following peripherals:
 
  + Pololu 18v15 Simple Motor Controller (serial connection via UART)
  + 400ppr quadrature encoder (1600ppr in x4 mode)
- + 600ppr quadrature encoder (2400ppr in x4 mode)
+ + 400ppr quadrature encoder (1600ppr in x4 mode)
  + SSD1306 128x64 pixel OLED display (I2C connection)
   
 The encoders are read via the built in eQEP (Enhanced Quadrature Encoder Pulse) modules on the BeagleBone Black
@@ -27,7 +27,8 @@ Access to eqep1 requires disabling of the HDMI interface.  See [uEnv.txt](doc/uE
 for an example of disabling the HDMI interface.
 
 [`load_overlays.sh`](scripts/load_overlays.sh) is a simple shell script to load the relevant overlays for the
-peripherals that are being used on the BBB.
+peripherals that are being used on the BBB. This shouldn't be needed as the application checks if the relevant
+devices are present and loads the overlays as required.
 
 ## Third Party Libraries
 
