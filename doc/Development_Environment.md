@@ -81,8 +81,8 @@ Install the required packages
 						   {binutils,gcc-4.7,g++-4.7}-arm-linux-gnueabihf git
 
 > **Note:** *These instructions were successful from a clean install of Debian Jessie 8.0.  One thing that needs to be the same between the host system and the BeagleBone Black is the version of **libc** that is installed on both systems.  In my case the BeagleBone Black came with libc-2.13 installed. When executing the above command ensure that the _libc6-armhf-cross_ and _libc6-dev-armhf-cross_ being installed match the version on your BeagleBone Black.  You can check the version installed on your BeagleBone Black by "running" the library from a terminal, eg:*
->
-> ```
+
+```
 root@beaglebone:~# /lib/arm-linux-gnueabihf/libc.so.6
 GNU C Library (Debian EGLIBC 2.13-38+deb7u8) stable release version 2.13, by Roland McGrath et al.
 ```
